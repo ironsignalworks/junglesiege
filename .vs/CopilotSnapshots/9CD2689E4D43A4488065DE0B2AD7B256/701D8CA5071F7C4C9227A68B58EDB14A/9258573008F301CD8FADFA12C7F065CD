@@ -1,0 +1,1017 @@
+﻿/* Jungle Siege - SIMPLIFIED FUNCTIONAL HUD */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* Variables */
+:root {
+  --primary-green: #c7ffc7;
+  --hud-yellow: #ffc107;
+  --military-font: 'Press Start 2P', monospace;
+  
+  /* HUD COLORS */
+  --hud-panel-bg: #1a1a1a;
+  --hud-border: #ffc107;
+  --health-bg: #1a0a0a;
+  --health-fill: #e53e3e;
+  --ammo-on: #ffc107;
+  --ammo-off: #333333;
+  
+  /* BOSS COLORS */
+  --boss-bg: #0d0d0d;
+  --boss-border: #ffc107;
+  --boss-name-color: #ffffff;
+  --boss-hp-bg: #2a0a0a;
+  --boss-hp-fill: #ff6666;
+}
+
+/* Global Reset - ENFORCE PRESS START 2P EVERYWHERE */
+* {
+  box-sizing: border-box;
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  color: var(--primary-green);
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+/* 4:3 Container */
+.screen-container-4x3,
+#start-screen,
+#game-viewport,
+#end-screen {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(100vw, calc(100vh * 4 / 3));
+  height: calc(min(100vw, calc(100vh * 4 / 3)) * 3 / 4);
+  background: #000;
+  overflow: hidden;
+}
+
+/* Start Screen */
+#start-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  border: 4px solid var(--hud-border);
+  background-image: url('/assets/images/poster1.png');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  text-align: center;
+}
+
+#start-screen.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#start-screen h1 {
+  color: var(--hud-yellow);
+  font-size: clamp(1.5rem, 6vw, 3.5rem);
+  margin: 0.5rem auto;
+  text-transform: uppercase;
+  text-shadow: 2px 2px 0 #000000;
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+#start-screen h2 {
+  color: var(--primary-green);
+  font-size: clamp(0.8rem, 3vw, 1.8rem);
+  margin: 0.5rem auto 1.5rem auto;
+  text-shadow: 1px 1px 0 #000000;
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+/* Buttons */
+#start-button, #restart-button {
+  font-family: 'Press Start 2P', monospace !important;
+  font-size: clamp(0.8rem, 2.5vw, 1.1rem);
+  text-transform: uppercase;
+  width: min(250px, 70%);
+  padding: 1em 1.5em;
+  cursor: pointer;
+  background: #daa520;
+  border: 3px solid;
+  border-color: #ffeb3b #8b6914 #8b6914 #ffeb3b;
+  color: #000;
+  margin: 1rem auto 0 auto;
+  display: block;
+  font-weight: bold;
+}
+
+#start-button:hover, #restart-button:hover {
+  background: #f4d03f;
+  transform: translateY(-1px);
+}
+
+#start-button:active, #restart-button:active {
+  transform: translateY(1px);
+}
+
+/* Game Viewport */
+#game-viewport {
+  border: 2px solid #333;
+  position: relative;
+  z-index: 1000;
+}
+
+/* Stage */
+#stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+}
+
+/* Canvas */
+canvas#gameCanvas {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  z-index: 50;
+  image-rendering: pixelated;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+canvas#gameCanvas.active {
+  display: block;
+}
+
+/* ============ SIMPLIFIED FUNCTIONAL HUD - FORCE VISIBILITY ============ */
+
+/* HUD Container - FORCE VISIBLE */
+#screen-hud {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 200 !important;
+  pointer-events: none !important;
+  opacity: 1 !important;
+  display: block !important;
+  visibility: visible !important;
+  transition: opacity 0.3s ease;
+  font-family: 'Press Start 2P', monospace !important;
+  /* REMOVED DEBUG BACKGROUND - was interfering with input */
+}
+
+#screen-hud.hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  /* Remove display: none to keep HUD visible for debugging */
+}
+
+/* HUD Top Bar - Game Stats (HIDDEN during boss fights) */
+.hud-top {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  height: 12px; /* compact like boss bar */
+  background: var(--boss-bg);
+  border: 1px solid var(--boss-border);
+  padding: 0 8px; /* tighter padding */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  font-family: 'Press Start 2P', monospace !important;
+  box-shadow: 0 0 2px rgba(255, 193, 7, 0.3);
+  pointer-events: none;
+}
+
+/* Tank position indicator moved into top HUD and styled like boss name label */
+.hud-top .tank-pos {
+  background: var(--boss-bg);
+  border: 1px solid var(--boss-border);
+  color: var(--hud-yellow);
+  font-size: 3px;
+  padding: 0 6px;
+  height: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  box-shadow: 0 0 2px rgba(255, 193, 7, 0.2);
+  white-space: nowrap;
+}
+
+/* COMPLETELY HIDE top HUD during boss fights */
+#screen-hud.boss-mode .hud-top {
+  display: none;
+}
+
+.hud-top .cluster {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.hud-top .tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 1px 6px;
+  background: var(--boss-bg);
+  border: 1px solid #333;
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+.hud-top .lbl {
+  color: var(--hud-yellow) !important;
+  font-size: 3px !important;
+  text-transform: uppercase;
+  font-family: 'Press Start 2P', monospace !important;
+  display: inline !important;
+  visibility: visible !important;
+}
+
+.hud-top .val {
+  color: var(--primary-green) !important;
+  font-size: 3px !important;
+  font-weight: bold;
+  font-family: 'Press Start 2P', monospace !important;
+  display: inline !important;
+  visibility: visible !important;
+}
+
+/* ============ BOSS HP BAR (50% shorter width) ============ */
+
+.boss-hp-container {
+  position: absolute;
+  top: 8px;
+  left: 25%; /* Center the shorter bar */
+  right: 25%; /* Center the shorter bar */
+  height: 12px;
+  display: none;
+  pointer-events: none;
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+/* Show ONLY boss HP when in boss mode */
+#screen-hud.boss-mode .boss-hp-container {
+  display: block;
+}
+
+.boss-name {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: var(--boss-bg);
+  border: 1px solid var(--boss-border);
+  border-bottom: none;
+  padding: 0px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 2px rgba(255, 193, 7, 0.3);
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+.boss-name-text {
+  color: var(--boss-name-color);
+  font-size: 3px;
+  font-weight: bold;
+  text-transform: uppercase;
+  text-align: center;
+  text-shadow: 1px 1px 0 #000000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+.boss-hp-bar-container {
+  position: absolute;
+  top: 5px;
+  left: 0;
+  right: 0;
+  height: 7px;
+  background: var(--boss-bg);
+  border: 1px solid var(--boss-border);
+  border-top: none;
+  padding: 1px 4px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  box-shadow: 0 0 2px rgba(255, 193, 7, 0.3);
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+.boss-hp-label {
+  color: var(--hud-yellow);
+  font-size: 2px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+.boss-hp-bar {
+  position: relative;
+  flex: 1;
+  height: 3px;
+  background: var(--boss-hp-bg);
+  border: 1px solid #333;
+  overflow: hidden;
+}
+
+.boss-hp-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, var(--boss-hp-fill), #ff4444);
+  transition: width 0.3s ease;
+  box-shadow: 0 0 1px rgba(255, 102, 102, 0.6);
+}
+
+.boss-hp-text {
+  color: var(--primary-green);
+  font-size: 2px;
+  font-weight: bold;
+  white-space: nowrap;
+  text-shadow: 1px 1px 0 #000000;
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+/* HUD Bottom Bar - Player Stats (Always visible) - styled like boss hp container */
+.hud-bottom {
+  position: absolute !important;
+  bottom: 8px !important;
+  left: 8px !important;
+  right: 8px !important;
+  height: 12px !important; /* compact to match boss bar */
+  background: var(--boss-bg) !important;
+  border: 1px solid var(--boss-border) !important;
+  padding: 0 8px !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-family: 'Press Start 2P', monospace !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  z-index: 300 !important;
+  box-shadow: 0 0 2px rgba(255, 193, 7, 0.3) !important;
+  pointer-events: none;
+}
+
+.hud-seg {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-family: 'Press Start 2P', monospace !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.hud-seg.hp {
+  flex: 2;
+}
+
+.hud-seg.ammo {
+  flex: 1.5;
+}
+
+.hud-seg.score {
+  flex: 1;
+}
+
+.hud-label {
+  color: var(--hud-yellow) !important;
+  font-size: 8px !important;
+  text-transform: uppercase;
+  white-space: nowrap;
+  font-family: 'Press Start 2P', monospace !important;
+  display: inline !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.hud-value {
+  color: var(--primary-green) !important;
+  font-size: 8px !important;
+  font-weight: bold;
+  white-space: nowrap;
+  font-family: 'Press Start 2P', monospace !important;
+  display: inline !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* HP Bar - FORCE VISIBLE */
+.hp-bar {
+  position: relative !important;
+  width: 100% !important;
+  max-width: 120px !important;
+  height: 12px !important;
+  background: var(--health-bg) !important;
+  border: 1px solid #333 !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.hp-fill {
+  position: absolute !important;
+  left: 1px !important;
+  top: 1px !important;
+  bottom: 1px !important;
+  background: var(--health-fill) !important;
+  transition: width 0.3s ease;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Ammo Pips - FORCE VISIBLE */
+.pips {
+  display: flex !important;
+  gap: 2px !important;
+  align-items: center !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.pip {
+  width: 8px !important;
+  height: 10px !important;
+  background: var(--ammo-off) !important;
+  border: 1px solid #555 !important;
+  transition: all 0.2s ease;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.pip.on {
+  background: var(--ammo-on) !important;
+  border-color: var(--hud-border) !important;
+}
+
+/* ============ INTEL POPUP (Remove bottom text) ============ */
+
+.intel-popup {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60%;
+  max-width: 400px;
+  background: var(--hud-panel-bg);
+  border: 3px solid var(--hud-border);
+  padding: 20px;
+  z-index: 500;
+  display: none;
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+.intel-popup.show {
+  display: block;
+}
+
+.intel-title {
+  color: var(--hud-yellow);
+  font-size: 12px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  text-align: center;
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+.intel-content {
+  color: var(--primary-green);
+  font-size: 8px;
+  line-height: 1.4;
+  text-align: left;
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+/* ============ STORY CARDS (NO GATE TEXT) ============ */
+
+.story-card-panel {
+  border: 3px solid var(--hud-border);
+  background: var(--hud-panel-bg);
+  padding: 16px;
+  font-family: 'Press Start 2P', monospace !important;
+  position: relative;
+}
+
+.story-card-text {
+  color: var(--primary-green);
+  font-size: 10px;
+  line-height: 1.4;
+  text-align: left;
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+.story-card-title {
+  color: var(--hud-yellow);
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+.story-card-prompt {
+  color: #999;
+  font-size: 8px;
+  margin-top: 12px;
+  text-align: right;
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+/* ============ ENHANCED ANTI-OVERLAP NOTIFICATIONS ============ */
+
+/* WARNING OVERLAYS - POP ANIMATION with better spacing */
+.warning-overlay {
+  position: absolute;
+  z-index: 300;
+  pointer-events: none;
+  font-family: 'Press Start 2P', monospace !important;
+  text-transform: uppercase;
+  font-size: 12px;
+  text-align: center;
+  white-space: nowrap;
+  animation: warningPop 0.8s ease-out;
+  min-width: 100px; /* Minimum width to help with spacing calculations */
+  /* Position will be set by JavaScript randomly */
+}
+
+@keyframes warningPop {
+  0% {
+    transform: translate(-50%, -50%) scale(0.1);
+    opacity: 0;
+  }
+  30% {
+    transform: translate(-50%, -50%) scale(1.3);
+    opacity: 0.8;
+  }
+  60% {
+    transform: translate(-50%, -50%) scale(0.9);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Atomic Switch Text - ALWAYS AT TOP */
+.warning-overlay.atomic-switch {
+  top: 15% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 500;
+  animation: atomicPulse 2s ease-in-out infinite;
+}
+
+@keyframes atomicPulse {
+  0%, 100% { 
+    transform: translate(-50%, -50%) scale(1);
+    text-shadow: 0 0 5px currentColor;
+  }
+  50% { 
+    transform: translate(-50%, -50%) scale(1.1);
+    text-shadow: 0 0 15px currentColor;
+  }
+}
+
+/* Boss Intro - Random position but high priority */
+.warning-overlay.boss-intro {
+  z-index: 400;
+  animation: warningPop 1.2s ease-out;
+}
+
+/* Combo notifications - Random position */
+.warning-overlay.combo {
+  z-index: 350;
+  animation: warningPop 0.6s ease-out;
+}
+
+/* Low health warnings - Random position */
+.warning-overlay.low-health {
+  z-index: 320;
+  animation: warningPop 0.8s ease-out;
+}
+
+/* Low ammo warnings - Random position */
+.warning-overlay.low-ammo {
+  z-index: 320;
+  animation: warningPop 0.8s ease-out;
+}
+
+.warning-critical {
+  color: #ff4444;
+  animation: criticalFlash 0.8s ease-in-out infinite alternate;
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+.warning-gameplay {
+  color: #ffcc00;
+  animation: gameplayPulse 1.2s ease-in-out infinite alternate;
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+.warning-status {
+  color: #ff8800;
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+.warning-narrative {
+  color: var(--primary-green);
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+/* PILLS - BOUNCE ANIMATION with higher priority and positioning */
+.pill {
+  position: absolute;
+  background: var(--hud-panel-bg);
+  color: var(--primary-green);
+  border: 2px solid var(--hud-border);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 8px;
+  text-transform: uppercase;
+  font-family: 'Press Start 2P', monospace !important;
+  z-index: 420; /* HIGHER Z-INDEX - above warnings and most other elements */
+  pointer-events: none;
+  text-align: center;
+  white-space: nowrap;
+  animation: pillBounce 1.5s ease-in-out;
+  min-width: 60px; /* Minimum width for spacing */
+  /* Position will be set by JavaScript randomly */
+}
+
+@keyframes pillBounce {
+  0% {
+    transform: translate(-50%, -50%) translateY(20px) rotate(-5deg);
+    opacity: 0;
+  }
+  15% {
+    transform: translate(-50%, -50%) translateY(-10px) rotate(2deg);
+    opacity: 0.8;
+  }
+  30% {
+    transform: translate(-50%, -50%) translateY(5px) rotate(-1deg);
+    opacity: 1;
+  }
+  45% {
+    transform: translate(-50%, -50%) translateY(-3px) rotate(0.5deg);
+    opacity: 1;
+  }
+  60% {
+    transform: translate(-50%, -50%) translateY(1px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) translateY(0px) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.pill.critical {
+  border-color: #ff4444;
+  color: #ff4444;
+  animation: pillBounce 1.5s ease-in-out, criticalFlash 0.8s ease-in-out infinite alternate;
+}
+
+.pill.status {
+  border-color: #ff8800;
+  color: #ff8800;
+}
+
+.pill.gameplay {
+  border-color: #ffcc00;
+  color: #ffcc00;
+}
+
+/* RIBBONS - MELT ANIMATION with better spacing */
+.ribbon {
+  position: absolute;
+  background: linear-gradient(45deg, var(--hud-panel-bg), #333);
+  color: var(--hud-yellow);
+  border: 2px solid var(--hud-border);
+  padding: 6px 12px;
+  font-size: 10px;
+  text-transform: uppercase;
+  font-family: 'Press Start 2P', monospace !important;
+  z-index: 290;
+  pointer-events: none;
+  text-align: center;
+  white-space: nowrap;
+  animation: ribbonMelt 2s ease-in-out;
+  min-width: 120px; /* Larger minimum width for ribbons */
+  /* Position will be set by JavaScript randomly */
+}
+
+@keyframes ribbonMelt {
+  0% {
+    transform: translate(-50%, -50%) scaleY(0) skewX(0deg);
+    opacity: 0;
+    filter: blur(2px);
+  }
+  20% {
+    transform: translate(-50%, -50%) scaleY(0.3) skewX(-5deg);
+    opacity: 0.4;
+    filter: blur(1px);
+  }
+  40% {
+    transform: translate(-50%, -50%) scaleY(0.8) skewX(3deg);
+    opacity: 0.8;
+    filter: blur(0.5px);
+  }
+  60% {
+    transform: translate(-50%, -50%) scaleY(1.1) skewX(-1deg);
+    opacity: 1;
+    filter: blur(0px);
+  }
+  80% {
+    transform: translate(-50%, -50%) scaleY(0.95) skewX(0.5deg);
+    opacity: 1;
+    filter: blur(0px);
+  }
+  100% {
+    transform: translate(-50%, -50%) scaleY(1) skewX(0deg);
+    opacity: 1;
+    filter: blur(0px);
+  }
+}
+
+.ribbon.critical {
+  background: linear-gradient(45deg, #2a0a0a, #4a1a1a);
+  border-color: #ff4444;
+  color: #ff4444;
+  animation: ribbonMelt 2s ease-in-out, criticalFlash 1s ease-in-out infinite alternate;
+}
+
+.ribbon.status {
+  background: linear-gradient(45deg, #2a1a0a, #4a2a1a);
+  border-color: #ff8800;
+  color: #ff8800;
+}
+
+.ribbon.gameplay {
+  background: linear-gradient(45deg, #2a2a0a, #4a4a1a);
+  border-color: #ffcc00;
+  color: #ffcc00;
+}
+
+/* ============ ROACH COMMS PANEL - HUD CONSISTENT STYLING ============ */
+
+.roach-comms-panel {
+  position: absolute;
+  background: var(--hud-panel-bg);
+  border: 2px solid var(--hud-border);
+  padding: 8px 12px;
+  font-family: 'Press Start 2P', monospace !important;
+  z-index: 250;
+  pointer-events: none;
+  box-shadow: 0 0 8px rgba(255, 193, 7, 0.3);
+}
+
+.roach-comms-text {
+  color: var(--primary-green);
+  font-size: 8px;
+  line-height: 1.3;
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+.roach-comms-incoming {
+  position: absolute;
+  background: linear-gradient(45deg, #4a1a1a, #6a2a2a);
+  border: 2px solid var(--hud-border);
+  padding: 4px 8px;
+  color: var(--hud-yellow);
+  font-size: 8px;
+  text-transform: uppercase;
+  font-family: 'Press Start 2P', monospace !important;
+  z-index: 600; /* HIGHEST Z-INDEX - at the very top */
+  pointer-events: none;
+  animation: gameplayPulse 1s ease-in-out infinite alternate;
+}
+
+/* End Screen */
+#end-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  z-index: 20000;
+  background: rgba(0, 0, 0, 0.9);
+  border: 4px solid var(--primary-green);
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+#end-screen.show {
+  display: flex;
+}
+
+#end-bg {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+}
+
+#end-overlay {
+  position: relative !important;
+  z-index: 2 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  height: 100% !important;
+  pointer-events: none !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+#end-title {
+  margin: 1rem auto !important;
+  text-align: center !important;
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+#end-stats {
+  margin: 1rem auto !important;
+  text-align: center !important;
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+#end-stats > div {
+  margin: 0.5rem auto !important;
+  text-align: center !important;
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+#restart-button {
+  pointer-events: auto !important;
+  font-family: 'Press Start 2P', monospace !important;
+  font-size: clamp(0.8rem, 2.5vw, 1.1rem) !important;
+  text-transform: uppercase !important;
+  width: min(250px, 70%) !important;
+  padding: 1em 1.5em !important;
+  cursor: pointer !important;
+  background: #daa520 !important;
+  border: 3px solid !important;
+  border-color: #ffeb3b #8b6914 #8b6914 #ffeb3b !important;
+  color: #000 !important;
+  margin: 1rem auto 0 auto !important;
+  display: block !important;
+  font-weight: bold !important;
+  z-index: 3 !important;
+}
+
+@keyframes criticalFlash {
+  0% { opacity: 1; }
+  100% { opacity: 0.7; }
+}
+
+@keyframes gameplayPulse {
+  0% { opacity: 0.9; }
+  100% { opacity: 1; }
+}
+
+/* GLOBAL FONT ENFORCEMENT FOR ALL ELEMENTS */
+div, span, p, h1, h2, h3, h4, h5, h6, 
+button, input, textarea, select, option,
+label, a, li, ul, ol, table, td, th,
+.combo-banner, .ribbon, .pill, .card,
+.overlay, .popup, .modal, .dialog,
+.notification, .alert, .tooltip {
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+/* Canvas text rendering - ensure Press Start 2P is used */
+canvas {
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+/* Responsive */
+@media (max-width: 600px), (max-height: 450px) {
+  #start-screen h1 {
+    font-size: clamp(1.2rem, 5vw, 2.5rem);
+    font-family: 'Press Start 2P', monospace !important;
+  }
+  
+  #start-screen h2 {
+    font-size: clamp(0.7rem, 2.5vw, 1.2rem);
+    font-family: 'Press Start 2P', monospace !important;
+  }
+  
+  #start-button, #restart-button {
+    font-size: clamp(0.7rem, 2vw, 0.9rem);
+    padding: 0.8em 1.2em;
+    width: min(200px, 80%);
+    font-family: 'Press Start 2P', monospace !important;
+  }
+  
+  .hud-top, .hud-bottom {
+    height: 28px;
+    padding: 4px 8px;
+  }
+  
+  .hud-top .lbl, .hud-top .val,
+  .hud-label, .hud-value {
+    font-size: 7px;
+    font-family: 'Press Start 2P', monospace !important;
+  }
+  
+  .hp-bar {
+    height: 10px;
+    max-width: 80px;
+  }
+  
+  .pip {
+    width: 6px;
+    height: 8px;
+  }
+  
+  /* Boss HP adjustments for mobile - ultra compact and 50% shorter */
+  .boss-hp-container {
+    height: 10px;
+    left: 37.5%; /* More centered for mobile */
+    right: 37.5%; /* More centered for mobile */
+  }
+  
+  .boss-name {
+    height: 4px;
+    padding: 0px 2px;
+  }
+  
+  .boss-name-text {
+    font-size: 2px;
+    font-family: 'Press Start 2P', monospace !important;
+  }
+  
+  .boss-hp-bar-container {
+    top: 4px;
+    height: 6px;
+    padding: 1px 2px;
+  }
+  
+  .boss-hp-label, .boss-hp-text {
+    font-size: 1px;
+    font-family: 'Press Start 2P', monospace !important;
+  }
+  
+  .boss-hp-bar {
+    height: 2px;
+  }
+  
+  /* Responsive adjustments for overlays - reduce for mobile */
+  .warning-overlay {
+    font-size: 9px;
+    min-width: 80px;
+  }
+  
+  .pill {
+    font-size: 6px;
+    padding: 2px 6px;
+    min-width: 50px;
+  }
+  
+  .ribbon {
+    font-size: 7px;
+    padding: 4px 8px;
+    min-width: 90px;
+  }
+  
+  .roach-comms-text {
+    font-size: 6px;
+  }
+  
+  .roach-comms-incoming {
+    font-size: 6px;
+  }
+}

@@ -1,0 +1,131 @@
+:root{
+  --steel-light:#e7e7e7;
+  --steel:#cfcfcf;
+  --steel-mid:#9f9f9f;
+  --steel-dark:#4a4a4a;
+  --steel-deep:#1a1a1a;
+
+  --panel:#141415;
+  --panel-2:#0e0e0f;
+  --accent:#f3c22f;
+  --muted:#9fb0c0;
+  --text:#dde3ea;
+  --danger:#e15b5b;
+  --ok:#6de38a;
+}
+
+/* Root HUD container — sits on top but lets gameplay clickthrough unless needed */
+#hud-root{
+  position:fixed; inset:0;
+  pointer-events:none;
+  z-index:1000;
+  font-family:"Roboto Mono", ui-monospace, monospace;
+  color:var(--text);
+}
+
+/* 4:3 frame wrapper */
+.hud-frame{
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  padding:16px;
+}
+.hud-frame-inner{
+  aspect-ratio:4/3;
+  width:min(1200px, 100%);
+  max-height:100%;
+  position:relative;
+  border-radius:16px;
+  background:linear-gradient(180deg,#121213 0%,#0a0a0b 100%);
+  box-shadow:
+    0 0 0 3px var(--steel-deep) inset,
+    0 0 0 6px #2a2a2a inset,
+    0 0 0 10px #0d0d0e inset,
+    0 8px 30px rgba(0,0,0,.65);
+  overflow:hidden;
+}
+
+/* Top/Bottom rails */
+.hud-rail{
+  position:absolute; left:0; right:0;
+  height:64px;
+  background:linear-gradient(180deg,#1b1c1e 0%,#101113 100%);
+  border-top:1px solid #26272a;
+  border-bottom:1px solid #08090a;
+  display:flex; align-items:center; gap:16px;
+  padding:0 18px;
+}
+.hud-rail.top{ top:0; }
+.hud-rail.bottom{ bottom:0; }
+
+/* Pill blocks */
+.pill{
+  pointer-events:none;
+  display:flex; align-items:center; gap:8px;
+  padding:8px 12px;
+  border:1px solid #2b2c2f;
+  background:linear-gradient(180deg,#17181a 0%,#0f1012 100%);
+  border-radius:999px;
+  font-size:12px; letter-spacing:.08em; text-transform:uppercase;
+}
+.pill .val{ font-weight:700; color:var(--accent); }
+
+/* Center area for the actual game canvas */
+#game-stage-host{
+  position:absolute; inset:64px 12px;
+  overflow:hidden;
+  border:1px solid #242528;
+  border-radius:10px;
+  background:#000;
+}
+
+/* Start/End overlays */
+.hud-overlay{
+  position:absolute; inset:0;
+  background:rgba(0,0,0,.6);
+  display:flex; align-items:center; justify-content:center;
+  pointer-events:auto;
+}
+.overlay-card{
+  width:min(720px, 92%);
+  border-radius:16px;
+  border:1px solid #2b2c2f;
+  background:linear-gradient(180deg,#15161a 0%,#0e0f12 100%);
+  padding:28px;
+  box-shadow:0 12px 40px rgba(0,0,0,.55);
+}
+.overlay-title{
+  font-size:28px; margin-bottom:8px; letter-spacing:.08em; text-transform:uppercase;
+}
+.overlay-sub{ color:var(--muted); margin-bottom:20px; }
+.rule{
+  height:1px; background:linear-gradient(90deg, transparent, #2b2c2f, transparent);
+  margin:16px 0 18px;
+}
+.meta-grid{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:18px;
+}
+.meta{
+  border:1px solid #2b2c2f; border-radius:10px; padding:10px 12px;
+  background:#0d0e11;
+  font-size:12px; text-transform:uppercase; letter-spacing:.08em;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.meta .val{ color:var(--accent); font-weight:700; }
+
+.btn{
+  pointer-events:auto; cursor:pointer;
+  border:none; border-radius:10px;
+  padding:12px 16px;
+  font-family:inherit; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+  background:linear-gradient(180deg,#2b2c2f 0%,#1a1b1f 100%);
+  color:var(--text);
+  outline:1px solid #36373a;
+}
+.btn:active{ transform:translateY(1px); }
+
+/* Status colors */
+.bad .val{ color:var(--danger); }
+.good .val{ color:var(--ok); }
+
+/* Utility hide */
+.hidden{ display:none !important; }

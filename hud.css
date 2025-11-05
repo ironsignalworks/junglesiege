@@ -1,0 +1,206 @@
+/* ================== Wolfenstein Steel HUD Shell ================== */
+:root{
+  /* steel palette (shared with boss HUD accent) */
+  --steel-0: #0d0d0d;   /* deep shadow */
+  --steel-1: #171717;   /* panel base */
+  --steel-2: #1f1f1f;   /* inner bevel */
+  --steel-3: #2a2a2a;   /* face */
+  --steel-4: #3a3a3a;   /* highlight edge */
+  --steel-5: #555555;   /* bright edge */
+  --accent-warn: #ffc107;  /* existing yellow accent */
+}
+
+/* Shared bezel look for both top & bottom bars */
+.hud-bezel {
+  background:
+    linear-gradient(#090909, #090909) padding-box,
+    linear-gradient(90deg, rgba(255,193,7,.4), rgba(255,193,7,0), rgba(255,193,7,.4)) border-box;
+  border: 2px solid transparent;
+  box-shadow:
+    inset 0 1px 0 var(--steel-5),
+    inset 0 -1px 0 var(--steel-0),
+    0 6px 20px rgba(0,0,0,.65);
+  color: var(--hud-green);
+  font-family: var(--font);
+  text-shadow: 0 1px 0 #000;
+}
+
+/* Thin pixel rim + inner steel plate */
+.hud-plate {
+  background:
+    linear-gradient(180deg, var(--steel-3), var(--steel-2));
+  border: 1px solid #222;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    inset 0 -1px 0 rgba(0,0,0,.6);
+}
+
+/* ---------- TOP BAR (Round/Sector) ---------- */
+.hud-top{
+  position:absolute; top:8px; left:8px; right:8px; height:32px;
+  display:flex; align-items:center; justify-content:space-between; gap:16px; padding:6px 12px;
+  pointer-events:none; z-index:20;
+}
+.hud-top { composes: hud-bezel; } /* if your build tool supports it */
+.hud-top { /* fallback when compose isn't available */
+  background:
+    linear-gradient(#090909, #090909) padding-box,
+    linear-gradient(90deg, rgba(255,193,7,.4), rgba(255,193,7,0), rgba(255,193,7,.4)) border-box;
+  border: 2px solid transparent;
+  box-shadow:
+    inset 0 1px 0 var(--steel-5),
+    inset 0 -1px 0 var(--steel-0),
+    0 6px 20px rgba(0,0,0,.65);
+  color: var(--hud-green);
+  text-shadow: 0 1px 0 #000;
+}
+
+.hud-top .cluster{ display:flex; gap:12px; align-items:center; }
+.hud-top .tag{
+  display:flex; align-items:center; gap:6px; padding:2px 8px;
+  border-radius:0;
+  pointer-events:none;
+  background: linear-gradient(180deg, var(--steel-3), var(--steel-2));
+  border: 1px solid #242424;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), inset 0 -1px 0 rgba(0,0,0,.6);
+}
+.hud-top .lbl{ color:var(--accent-warn); font-size:8px; text-transform:uppercase; }
+.hud-top .val{ color:var(--hud-green); font-size:8px; font-weight:700; }
+
+/* Hide top bar in boss fights, like before */
+#screen-hud.boss-mode .hud-top{ display:none; }
+
+/* ---------- BOTTOM BAR (HP/Ammo/Score) ---------- */
+.hud-bottom{
+  position:absolute; bottom:8px; left:8px; right:8px; height:40px;
+  display:flex; align-items:center; justify-content:space-between; gap:16px; padding:8px 12px;
+  pointer-events:none; z-index:20;
+  background:
+    linear-gradient(#090909, #090909) padding-box,
+    linear-gradient(90deg, rgba(255,193,7,.4), rgba(255,193,7,0), rgba(255,193,7,.4)) border-box;
+  border: 2px solid transparent;
+  box-shadow:
+    inset 0 1px 0 var(--steel-5),
+    inset 0 -1px 0 var(--steel-0),
+    0 -6px 20px rgba(0,0,0,.65);
+  color: var(--hud-green);
+  text-shadow: 0 1px 0 #000;
+}
+
+.hud-seg{ display:flex; align-items:center; gap:10px; }
+.hud-label{ color:var(--accent-warn); font-size:8px; text-transform:uppercase; white-space:nowrap; }
+.hud-value{ color:var(--hud-green); font-size:8px; font-weight:700; white-space:nowrap; }
+
+/* HP bar — steel groove */
+.hp-bar{
+  position:relative; width:160px; height:12px; pointer-events:none;
+  background: linear-gradient(180deg, var(--steel-1), var(--steel-2));
+  border:1px solid #232323;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    inset 0 -1px 0 rgba(0,0,0,.7);
+}
+.hp-fill{
+  position:absolute; left:1px; top:1px; bottom:1px;
+  background: linear-gradient(90deg, #b54646, #e05353);
+  box-shadow: 0 0 2px rgba(229,62,62,.7);
+  transition: width .25s ease;
+}
+
+/* Ammo pips — steel casings with amber on */
+.pips{ display:flex; gap:3px; align-items:center; }
+.pip{
+  width:10px; height:12px;
+  background: linear-gradient(180deg, var(--steel-3), var(--steel-2));
+  border:1px solid #2a2a2a;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05), inset 0 -1px 0 rgba(0,0,0,.7);
+}
+.pip.on{
+  background: linear-gradient(180deg, #f6c446, #c38c10);
+  border-color: #6a4f07;
+}
+
+/* Make boss HP shell use exact same steel styling on name/bar containers */
+.boss-name,
+.boss-hp-bar-container{
+  background: linear-gradient(180deg, var(--steel-3), var(--steel-2));
+  border: 1px solid #242424;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    inset 0 -1px 0 rgba(0,0,0,.6),
+    0 0 2px rgba(255,193,7,.25);
+}
+.boss-hp-label{ color:var(--accent-warn); }
+
+/* ===== Wolfenstein shell — forced overrides ===== */
+
+/* 0) Ensure the wrapper isn't painting over the bars */
+#screen-hud,
+#hud,
+.hud {
+  background: transparent !important;
+}
+
+/* 1) Match both class and id versions */
+#screen-hud .hud-top,
+#screen-hud .hud-bottom,
+.hud-top, .hud-bottom,
+#hud-top, #hud-bottom {
+  /* size/position stays as you had */
+  background:
+    linear-gradient(#090909, #090909) padding-box,
+    linear-gradient(90deg, rgba(255,193,7,.4), rgba(255,193,7,0), rgba(255,193,7,.4)) border-box !important;
+  border: 2px solid transparent !important;     /* kill any old yellow borders */
+  box-shadow:
+    inset 0 1px 0 var(--steel-5),
+    inset 0 -1px 0 var(--steel-0),
+    0 6px 20px rgba(0,0,0,.65) !important;
+  color: var(--hud-green) !important;
+  text-shadow: 0 1px 0 #000 !important;
+}
+
+/* 2) Inner tag/plates look (round/sector capsules etc.) */
+#screen-hud .hud-top .tag,
+.hud-top .tag,
+#hud-top .tag {
+  background: linear-gradient(180deg, var(--steel-3), var(--steel-2)) !important;
+  border: 1px solid #242424 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    inset 0 -1px 0 rgba(0,0,0,.6) !important;
+}
+
+/* 3) HP groove + ammo pips in steel */
+#screen-hud .hp-bar, .hp-bar {
+  background: linear-gradient(180deg, var(--steel-1), var(--steel-2)) !important;
+  border: 1px solid #232323 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    inset 0 -1px 0 rgba(0,0,0,.7) !important;
+}
+#screen-hud .hp-fill, .hp-fill {
+  background: linear-gradient(90deg, #b54646, #e05353) !important;
+}
+
+#screen-hud .pips .pip, .pips .pip {
+  background: linear-gradient(180deg, var(--steel-3), var(--steel-2)) !important;
+  border: 1px solid #2a2a2a !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.05),
+    inset 0 -1px 0 rgba(0,0,0,.7) !important;
+}
+#screen-hud .pips .pip.on, .pips .pip.on {
+  background: linear-gradient(180deg, #f6c446, #c38c10) !important;
+  border-color: #6a4f07 !important;
+}
+
+/* 4) Make boss HUD shell match (in case other styles linger) */
+#screen-hud .boss-name, .boss-name,
+#screen-hud .boss-hp-bar-container, .boss-hp-bar-container {
+  background: linear-gradient(180deg, var(--steel-3), var(--steel-2)) !important;
+  border: 1px solid #242424 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    inset 0 -1px 0 rgba(0,0,0,.6),
+    0 0 2px rgba(255,193,7,.25) !important;
+}

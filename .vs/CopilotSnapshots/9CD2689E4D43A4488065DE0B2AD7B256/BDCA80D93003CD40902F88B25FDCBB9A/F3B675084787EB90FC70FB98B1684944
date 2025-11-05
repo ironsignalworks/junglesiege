@@ -1,0 +1,157 @@
+﻿// HUD Frame Update Script (Enhanced with Boss Mode Support)
+// NOTE: Debug/force-visibility code removed or disabled to avoid overriding CSS.
+
+console.log("[HUD FRAME] Initializing enhanced HUD with boss mode support...");
+
+// Debug function kept but disabled by default
+window.debugHUDForce = function(enable = false) {
+  if (!enable) return; // no-op unless explicitly enabled
+  console.log("=== FORCE HUD DEBUG ===");
+  const hudEl = document.getElementById('screen-hud');
+  if (hudEl) {
+    hudEl.classList.remove('hidden');
+    hudEl.removeAttribute('aria-hidden');
+    // Do not set inline background/style here to avoid overriding CSS
+    console.log("HUD element forced visible (debug)");
+  }
+
+  // ...rest of debug behavior omitted to avoid inline style overrides...
+};
+
+(function(){
+  console.log("[HUD] Auto-updater initializing...");
+  const qs = (id) => document.getElementById(id);
+  let prev = { health: null, ammo: null, score: null, round: null, sector: null };
+  let prevBoss = { active: false, name: null, health: null, maxHealth: null };
+
+  function getObjectiveForSector(sector, bossActive, round) {
+    if (bossActive) return "ELIMINATE BOSS";
+    const objectives = {
+      'ALPHA': round > 3 ? 'ADVANCE SECTOR' : 'SECURE PERIMETER',
+      'BRAVO': round > 5 ? 'LOCATE INTEL' : 'CLEAR HOSTILES',
+      'CHARLIE': round > 7 ? 'EXTRACT VIP' : 'DEFEND POSITION',
+      'DELTA': 'FINAL ASSAULT',
+      'ECHO': 'MISSION COMPLETE',
+    };
+    return objectives[sector] || 'SURVIVE';
+  }
+
+  function setAmmoPips(filledCount, totalPips = 6) {
+    const pips = document.querySelectorAll('#hud-ammo-pips .pip');
+    pips.forEach((pip, i) => {
+      if (i < filledCount) pip.classList.add('on'); else pip.classList.remove('on');
+    });
+  }
+
+  function updateBossMode() {
+    const S = (window.state || (window.game && window.game.state));
+    if (!S) return;
+    const hudContainer = qs('screen-hud');
+    const boss = S.boss;
+    const bossActive = boss && boss.isAlive && boss.health > 0;
+    if (!hudContainer) return;
+    if (bossActive && !hudContainer.classList.contains('boss-mode')) {
+      hudContainer.classList.add('boss-mode');
+      updateBossInfo(boss);
+    } else if (!bossActive && hudContainer.classList.contains('boss-mode')) {
+      hudContainer.classList.remove('boss-mode');
+    }
+    if (bossActive) updateBossInfo(boss);
+  }
+
+  function updateBossInfo(boss) {
+    if (!boss) return;
+    const nameEl = qs('boss-name-text');
+    const fillEl = qs('boss-hp-fill');
+    const textEl = qs('boss-hp-text');
+    if (nameEl && boss.name !== prevBoss.name) { nameEl.textContent = boss.name || "UNKNOWN BOSS"; prevBoss.name = boss.name; }
+    const currentHP = Math.max(0, Math.ceil(boss.health || 0));
+    const maxHP = boss.maxHealth || 1000;
+    const hpPercent = Math.max(0, Math.min(100, (currentHP / maxHP) * 100));
+    if (fillEl && (currentHP !== prevBoss.health || maxHP !== prevBoss.maxHealth)) {
+      fillEl.style.width = hpPercent + '%';
+      // set colors via CSS classes instead of inline styles
+      fillEl.classList.remove('hp-high','hp-mid','hp-low');
+      if (hpPercent > 60) fillEl.classList.add('hp-high');
+      else if (hpPercent > 30) fillEl.classList.add('hp-mid');
+      else fillEl.classList.add('hp-low');
+      prevBoss.health = currentHP;
+      prevBoss.maxHealth = maxHP;
+    }
+    if (textEl) {
+      const hpText = `${currentHP}/${maxHP}`;
+      if (textEl.textContent !== hpText) textEl.textContent = hpText;
+    }
+  }
+
+  function tick() {
+    try {
+      const S = (window.state || (window.game && window.game.state)) || null;
+      if (!S) { requestAnimationFrame(tick); return; }
+
+      // Update boss mode
+      updateBossMode();
+
+      // Update round
+      const round = S.round || S.currentRound || 1;
+      if (round !== prev.round) {
+        const roundEl = qs('hud-round');
+        if (roundEl) { const newText = String(round).padStart(2,'0'); roundEl.textContent = newText; }
+        prev.round = round;
+      }
+
+      // Update sector
+      const sector = S.sector || S.currentSector || 'ALPHA';
+      if (sector !== prev.sector) { const sectorEl = qs('hud-sector'); if (sectorEl) sectorEl.textContent = sector; prev.sector = sector; }
+
+      // Update score
+      const score = S.score || 0;
+      if (score !== prev.score) { const scoreEl = qs('hud-score'); if (scoreEl) scoreEl.textContent = String(score).padStart(6,'0'); prev.score = score; }
+
+      // Update health
+      const hp = S.health != null ? S.health : (S.playerHealth != null ? S.playerHealth : 100);
+      if (hp !== prev.health) {
+        const fill = qs('hud-hp-fill');
+        const valueEl = qs('hud-health-value');
+        if (fill) { const pct = Math.max(0, Math.min(100, hp)) / 100; fill.style.width = (pct * 100) + '%'; }
+        if (valueEl) valueEl.textContent = String(Math.round(hp));
+        prev.health = hp;
+      }
+
+      // Update ammo
+      const ammo = (S.ammo != null ? S.ammo : S.playerAmmo != null ? S.playerAmmo : null);
+      if (ammo !== prev.ammo) {
+        const ammoEl = qs('hud-ammo-value');
+        if (ammoEl) ammoEl.textContent = (ammo === Infinity || ammo > 999) ? '?' : String(ammo || 0);
+        if (ammo === Infinity || ammo > 999) setAmmoPips(6,6); else setAmmoPips(Math.max(0, Math.min(6, Math.ceil((ammo||0)/25))),6);
+        prev.ammo = ammo;
+      }
+
+      // Update objective
+      const currentSector = S.sector || 'ALPHA';
+      const currentRound = S.round || 1;
+      const bossActive = S.boss && S.boss.isAlive;
+      const newObjective = getObjectiveForSector(currentSector, bossActive, currentRound);
+      const objEl = qs('hud-objective'); if (objEl && objEl.textContent !== newObjective) objEl.textContent = newObjective;
+
+    } catch(e) { console.warn('[HUD] Update error:', e); }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+
+// Visibility manager - less aggressive, do not force inline styles
+(function(){
+  function toggleHudVisibility(){
+    const hudEl = document.getElementById('screen-hud');
+    if (!hudEl) { requestAnimationFrame(toggleHudVisibility); return; }
+    // Keep HUD visibility governed by CSS and classes; ensure not hidden by accident
+    hudEl.classList.remove('hidden');
+    requestAnimationFrame(toggleHudVisibility);
+  }
+  toggleHudVisibility();
+})();
+
+// Removed injected debug <style> block to avoid overriding theme styles
+
+console.log('[HUD FRAME] Enhanced HUD with boss mode support initialized');

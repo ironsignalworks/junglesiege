@@ -1,0 +1,99 @@
+﻿/* ...existing code... */
+
+/* HUD MERGED OVERRIDE - single-line HUD panels
+   Unified HUD simplified to a single horizontal line per bar.
+   All stat text shown on one row (no vertical stacks), labels and values inline.
+*/
+
+#screen-hud {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 400 !important;
+  pointer-events: none !important;
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+/* Unified panel appearance for both top and bottom HUD */
+#screen-hud .hud-top,
+#screen-hud .hud-bottom {
+  background: linear-gradient(180deg,#2f2f2f,#111) !important;
+  border: 1px solid #444 !important;
+  border-radius: 6px !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 3px 6px rgba(0,0,0,0.6) !important;
+  color: var(--primary-green) !important;
+  font-family: 'Press Start 2P', monospace !important;
+  pointer-events: none !important;
+}
+
+/* Top & Bottom single-line sizing */
+#screen-hud .hud-top { position: absolute !important; top: 8px !important; left: 8px !important; right: 8px !important; height: 32px !important; padding: 6px 12px !important; display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 8px !important; }
+#screen-hud .hud-bottom { position: absolute !important; bottom: 8px !important; left: 8px !important; right: 8px !important; height: 32px !important; padding: 6px 12px !important; display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 12px !important; }
+
+/* Tiles inline (label + value on same row) */
+#screen-hud .hud-top .tag,
+#screen-hud .hud-bottom .hud-seg {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 4px 8px !important;
+  min-width: 80px !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+}
+
+/* Label and value inline, no wrap */
+#screen-hud .hud-top .lbl,
+#screen-hud .hud-bottom .hud-label {
+  font-size: 10px !important;
+  text-transform: uppercase !important;
+  color: var(--primary-green) !important;
+  white-space: nowrap !important;
+}
+#screen-hud .hud-top .val,
+#screen-hud .hud-bottom .hud-value {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: var(--primary-green) !important;
+  white-space: nowrap !important;
+}
+
+/* Small HP bar inline */
+#screen-hud .hp-bar { height: 12px !important; max-width: 140px !important; border: 1px solid #333 !important; background: linear-gradient(180deg,#1d0a0a,#2b0a0a) !important; }
+#screen-hud .hp-fill { left: 1px !important; top: 1px !important; bottom: 1px !important; }
+
+/* Ammo pips inline */
+#screen-hud .pips { gap: 6px !important; }
+#screen-hud .pip { width: 8px !important; height: 10px !important; border: 1px solid #555 !important; }
+#screen-hud .pip.on { background: var(--ammo-on) !important; border-color: #888 !important; }
+
+/* Ensure boss HP still takes precedence */
+#screen-hud.boss-mode .hud-top { display: none !important; }
+#screen-hud .boss-hp-container { z-index: 500 !important; }
+
+/* Mobile: further compact */
+@media (max-width:600px),(max-height:450px) {
+  #screen-hud .hud-top, #screen-hud .hud-bottom { height: 28px !important; padding: 4px 8px !important; }
+  #screen-hud .hud-top .tag, #screen-hud .hud-bottom .hud-seg { min-width: 60px !important; gap: 6px !important; padding: 3px 6px !important; }
+  #screen-hud .hud-top .lbl, #screen-hud .hud-bottom .hud-label { font-size: 9px !important; }
+  #screen-hud .hud-top .val, #screen-hud .hud-bottom .hud-value { font-size: 11px !important; }
+  #screen-hud .hp-bar { height: 10px !important; max-width: 120px !important; }
+  #screen-hud .pip { width: 6px !important; height: 8px !important; }
+}
+
+/* end HUD MERGED OVERRIDE */
+
+/* ...existing code... */

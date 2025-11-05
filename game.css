@@ -1,0 +1,232 @@
+
+/* =========================================================
+   game.css — Core game layout, 4:3 viewport, start/end screens, canvas
+   (No HUD visuals here. Pair with hud.css.)
+   ========================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+:root{
+  /* z-order */
+  --z-canvas: 10;
+  --z-hud: 20;
+  --z-overlay: 30;
+
+  /* palette shared with HUD */
+  --hud-yellow: #ffc107;
+  --hud-green: #c7ffc7;
+  --hud-bg: #1a1a1a;
+  --font: 'Press Start 2P', monospace;
+}
+
+*{ box-sizing: border-box; }
+
+html, body{
+  margin:0; height:100%;
+  background:#000; color:var(--hud-green);
+  font-family: var(--font);
+  overflow:hidden;
+}
+
+/* Root stage fills screen; we center children with grid for safety */
+.game-root{
+  position: fixed; inset:0;
+  display:grid; place-items:center;
+  background:#000;
+}
+
+/* Shared 4:3 box geometry for all main screens:
+   centered via fixed+inset+margin:auto (no translate needed) */
+#game-viewport, #start-screen{
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(100vw, calc(100vh * 4 / 3));
+  aspect-ratio: 4 / 3;
+  height: auto;              /* driven by aspect-ratio */
+  background:#000;
+  overflow:hidden;
+  box-sizing: border-box;
+}
+
+/* Layering */
+#game-viewport{ z-index: var(--z-canvas); }
+#start-screen, #end-screen{ z-index: var(--z-overlay); }
+
+/* Canvas fills the 4:3 viewport and is always interactive */
+#game-viewport canvas#gameCanvas{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  image-rendering: pixelated;
+  touch-action:none; cursor: crosshair;
+  pointer-events:auto;
+}
+
+/* HUD containers (defined in hud.css) should not eat clicks;
+   keep here as a guard in case hud.css is missing */
+.hud, .bezel-top, .bezel-bottom{ pointer-events:none; z-index: var(--z-hud); }
+
+/* ---------- Start Screen ---------- */
+#start-screen {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(100vw, calc(100vh * 4 / 3));
+  aspect-ratio: 4 / 3;
+  height: auto;
+  display: grid;
+  place-items: center;
+
+  border: 4px solid var(--hud-yellow);
+  background-image: url('/assets/images/poster1.webp');
+  background-size: contain;
+  background-position: center center;
+  background-repeat: no-repeat;
+  box-sizing: border-box;
+
+  z-index: var(--z-overlay);
+}
+
+/* top ribbon text */
+#start-screen .start-top {
+  position: absolute;
+  top: 2.5%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  pointer-events: none; /* don't block clicks */
+}
+
+#start-screen .start-top h2 {
+  margin: 0;
+  font-size: clamp(0.9rem, 2.8vw, 1.6rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--hud-green);
+  text-shadow: 0 0 6px rgba(199,255,199,.55);
+}
+
+/* center stack: title + start button */
+#start-screen .screen-content {
+  display: grid;
+  place-items: center;
+  gap: 0.75rem;
+  text-align: center;
+  max-width: 92%;
+  max-height: 92%;
+}
+
+/* big two-line title */
+#start-screen .game-title {
+  margin: 0;
+  line-height: 0.95;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--hud-green);
+  text-shadow:
+    0 0 6px rgba(144,255,144,.55),
+    0 0 14px rgba(35,196,131,.35);
+}
+
+#start-screen .game-title.line1,
+#start-screen .game-title.line2 {
+  font-size: clamp(1.6rem, 7vw, 4.2rem);
+}
+#start-screen .game-title.line2 {
+  letter-spacing: 0.16em;
+}
+
+/* start button */
+#start-screen #start-button {
+  font-family: var(--font);
+  padding: 1em 1.5em;
+  text-transform: uppercase;
+  background: #daa520;
+  border: 3px solid;
+  border-color: #ffeb3b #8b6914 #8b6914 #ffeb3b;
+  color: #000;
+  margin-top: 0.75rem;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform 0.15s ease;
+}
+#start-screen #start-button:hover {
+  transform: translateY(-1px);
+}
+
+/* ---------- End / Restart Screen (hard-centered 4:3) ---------- */
+#end-screen,
+.end-screen,
+.restart-screen{
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);          /* robust vertical centering */
+  width: min(100vw, calc(100vh * 4 / 3));
+  height: calc(min(100vw, calc(100vh * 4 / 3)) * 3 / 4);
+  display: none;                              /* show via .show */
+  place-items: center;
+  z-index: var(--z-overlay);
+  background: rgba(0,0,0,0.88);
+  border: 4px solid var(--hud-green);
+  box-sizing: border-box;
+  overflow: hidden;                           /* stop content from pushing box */
+}
+
+/* show state */
+#end-screen.show,
+.end-screen.show,
+.restart-screen.show{ display: grid; }
+
+/* background media layer (optional) */
+#end-bg{
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  z-index: 1; pointer-events: none;
+}
+
+/* overlay content: keep within the box */
+#end-overlay{
+  position: relative; z-index: 2;
+  width: 100%; height: 100%;
+  display: grid; place-items: center;
+  text-align: center;
+  padding: 1rem;                 /* tighter padding prevents overflow */
+  box-sizing: border-box;
+  max-width: 92%; max-height: 92%;
+  margin: 0 auto;
+}
+
+/* titles & stats scale safely */
+#end-title{ margin:.25rem 0; line-height:1.1; font-size: clamp(1.2rem, 4.8vw, 3.2rem); }
+#end-stats{ display:grid; gap:.5rem; font-size: clamp(.8rem, 2.6vw, 1.4rem); }
+
+/* restart button remains clickable */
+#end-screen button,
+.end-screen button,
+.restart-screen button{
+  pointer-events: auto;
+  font-family: var(--font);
+  padding: 1em 1.5em;
+  text-transform: uppercase;
+  background: #daa520;
+  border: 3px solid; border-color: #ffeb3b #8b6914 #8b6914 #ffeb3b;
+  color: #000; cursor: pointer;
+  transition: transform .15s ease;
+}
+#end-screen button:hover,
+.end-screen button:hover,
+.restart-screen button:hover{ transform: translateY(-1px); }
+
+/* Hide HUD whenever end/restart is visible */
+#end-screen.show ~ #screen-hud,
+#end-screen.show ~ .hud,
+.end-screen.show ~ #screen-hud,
+.end-screen.show ~ .hud,
+.restart-screen.show ~ #screen-hud,
+.restart-screen.show ~ .hud { display: none !important; }

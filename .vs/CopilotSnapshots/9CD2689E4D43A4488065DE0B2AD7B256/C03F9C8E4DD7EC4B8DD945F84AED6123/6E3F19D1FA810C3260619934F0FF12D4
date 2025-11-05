@@ -1,0 +1,117 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport"
+content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>Jungle Siege</title>
+<!-- Consolidated UI/CSS to avoid duplicate/competing styles -->
+<link rel="stylesheet" href="assets/styles/consolidated.css" />
+<link rel="icon" href="favicon.ico" type="image/x-icon" />
+</head>
+<body class="game-root">
+
+<!-- Start Screen (4:3 aspect ratio) -->
+<div id="start-screen" class="screen-container-4x3">
+  <h1>JUNGLE SIEGE</h1>
+  <h2>Iron Signal Works Presents</h2>
+  <button id="start-button" disabled>LOADING</button>
+</div>
+
+<!-- SIMPLE GAME VIEWPORT (4:3 aspect ratio) -->
+<div id="game-viewport" class="screen-container-4x3">
+  
+  <!-- Game Stage -->
+  <div id="stage" class="game-stage">
+    <!-- Canvas will be created here by JavaScript -->
+  </div>
+
+  <!-- HUD overlay with boss mode support -->
+  <div id="screen-hud" class="hidden" aria-hidden="true">
+    <!-- Top HUD Bar - Game Info (Hidden during boss fights) -->
+    <div class="hud-top">
+      <div class="cluster left">
+        <div class="tag">
+          <span class="lbl">ROUND</span>
+          <span id="hud-round" class="val">01</span>
+        </div>
+        <div class="tag">
+          <span class="lbl">SECTOR</span>
+          <span id="hud-sector" class="val">ALPHA</span>
+        </div>
+      </div>
+      <div class="cluster right">
+        <div class="tag">
+          <span class="lbl">OBJECTIVE</span>
+          <span id="hud-objective" class="val">SECURE PERIMETER</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Boss HP Bar (Replaces top HUD during boss fights) -->
+    <div class="boss-hp-container">
+      <div class="boss-name">
+        <div class="boss-name-text" id="boss-name-text">BOSS NAME</div>
+      </div>
+      <div class="boss-hp-bar-container">
+        <span class="boss-hp-label">BOSS HP</span>
+        <div class="boss-hp-bar">
+          <div class="boss-hp-fill" id="boss-hp-fill" style="width:100%"></div>
+        </div>
+        <span class="boss-hp-text" id="boss-hp-text">1000/1000</span>
+      </div>
+    </div>
+    
+    <!-- Bottom HUD Bar - Player Stats (Always visible) -->
+    <div class="hud-bottom">
+      <div class="hud-seg hp">
+        <span class="hud-label">HP</span>
+        <div class="hp-bar">
+          <div class="hp-fill" id="hud-hp-fill" style="width:100%"></div>
+        </div>
+        <span class="hud-value" id="hud-health-value">100</span>
+      </div>
+      
+      <div class="hud-seg ammo">
+        <span class="hud-label">AMMO</span>
+        <div class="pips" id="hud-ammo-pips">
+          <div class="pip on"></div>
+          <div class="pip on"></div>
+          <div class="pip on"></div>
+          <div class="pip on"></div>
+          <div class="pip on"></div>
+          <div class="pip"></div>
+        </div>
+        <span class="hud-value" id="hud-ammo-value">150</span>
+      </div>
+      
+      <div class="hud-seg score">
+        <span class="hud-label">SCORE</span>
+        <span class="hud-value" id="hud-score">000000</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Intel Popup -->
+  <div class="intel-popup" id="intel-popup">
+    <div class="intel-title">INTELLIGENCE BRIEFING</div>
+    <div class="intel-content" id="intel-content">
+      <!-- Intel content will be populated by JavaScript -->
+    </div>
+    <div class="intel-close">PRESS ANY KEY TO CONTINUE</div>
+  </div>
+</div>
+
+<!-- Story Card Template (for JavaScript-generated cards) - NO GATE TEXT -->
+<template id="story-card-template">
+  <div class="story-card-panel">
+    <div class="story-card-title"></div>
+    <div class="story-card-text"></div>
+  </div>
+</template>
+
+
+
+  <script type="module" src="/src/game/main.js"></script>
+</body>
+</html>

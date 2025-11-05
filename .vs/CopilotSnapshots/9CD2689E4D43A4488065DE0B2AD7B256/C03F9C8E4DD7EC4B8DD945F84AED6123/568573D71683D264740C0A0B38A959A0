@@ -1,0 +1,361 @@
+﻿/* style.css */
+/* Import vintage military-style font with fallbacks */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* === Root Variables === */
+:root {
+  --primary-green: #c7ffc7;
+  --secondary-green: #90ff90;
+  --accent-green: #23c483;
+  --dark-green: #4B5320;
+  --darker-green: #1a200a;
+  --hud-yellow: #ffc107;
+  --glow-color: rgba(144, 255, 144, 0.5);
+  --strong-glow: rgba(144, 255, 144, 0.8);
+  --scanline-opacity: 0.15;
+  --military-font: 'Press Start 2P', monospace;
+}
+body { font-family: var(--military-font); }
+
+/* === Global Reset & Base === */
+* { box-sizing: border-box; font-family: var(--military-font) !important; }
+html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background-color: #000; color: var(--primary-green); text-align: center; user-select: none; }
+body { overflow: hidden; }
+
+/* === Scanlines Overlay === */
+body::before {
+  content: "";
+  position: fixed; inset: 0;
+  background:
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px),
+    repeating-linear-gradient(90deg, rgba(255,0,0,0.06), rgba(255,0,0,0.06) 1px, rgba(0,255,0,0.02) 1px, rgba(0,255,0,0.02) 2px, rgba(0,0,255,0.06) 2px, rgba(0,0,255,0.06) 3px);
+  z-index: 1000; pointer-events: none; opacity: var(--scanline-opacity); mix-blend-mode: multiply;
+  animation: scanlines 0.1s linear infinite;
+}
+@keyframes scanlines { 0% { transform: translateY(0); } 100% { transform: translateY(4px); } }
+
+/* === Subtle Flicker === */
+body::after { content: ""; position: fixed; inset: 0; background: var(--primary-green); z-index: 999; pointer-events: none; opacity: 0; animation: flicker 4s infinite; }
+@keyframes flicker { 0%, 98% { opacity: 0; } 99% { opacity: 0.02; } 100% { opacity: 0; } }
+
+/* === Game Canvas === */
+canvas#gameCanvas {
+  display: none; /* JS toggles visibility */
+  position: fixed; inset: 0;
+  width: 100vw; height: 100dvh;
+  background: #000; z-index: 50;
+  image-rendering: pixelated; image-rendering: crisp-edges;
+  cursor: crosshair; touch-action: none;
+}
+canvas#gameCanvas.active { display: block; }
+@supports not (height: 100dvh) { canvas#gameCanvas { height: 100vh; } }
+
+/* === Shared Screen Frame (4:3 fit, pillarbox) === */
+/* We use a centered frame that scales to 4:3 inside the viewport. */
+.screen-root { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.screen-frame {
+  position: relative;
+  width: 100%; height: 100%;
+  max-width: 100vw; max-height: 100vh;
+  overflow: hidden; background: #000; image-rendering: pixelated;
+}
+.screen-content {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 1.25rem; padding: 1rem;
+  pointer-events: none; /* buttons re-enable below */
+}
+
+/* === Start Screen === */
+#start-screen {
+  /* background art fits viewport (contain), centered */
+  background-image: url('/assets/images/poster1.png');
+  background-size: contain; background-position: center center; background-repeat: no-repeat;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  position: fixed; inset: 0; z-index: 100;
+  transition: opacity 0.5s ease-out;
+}
+#start-screen.fade-out { opacity: 0; pointer-events: none; }
+#start-screen .screen-content { gap: 1.25rem; }
+#start-screen h1, #start-screen h2 {
+  text-transform: uppercase; margin: 0; padding: 0.25rem 0.5rem; max-width: min(90%, 960px);
+  color: var(--primary-green);
+  text-shadow: 0 0 5px var(--secondary-green), 0 0 10px var(--secondary-green), 0 0 20px var(--accent-green), 0 0 30px var(--accent-green), 0 0 40px var(--accent-green);
+  animation: titleGlow 3s ease-in-out infinite alternate;
+}
+#start-screen h1 { font-size: clamp(1.2rem, 4.8vw, 4rem); letter-spacing: 0.08em; }
+#start-screen h2 { font-size: clamp(1rem, 4vw, 2.4rem); color: #0b3d0b; }
+
+@keyframes titleGlow {
+  from { text-shadow: 0 0 5px var(--secondary-green), 0 0 10px var(--secondary-green), 0 0 20px var(--accent-green), 0 0 30px var(--accent-green); }
+  to   { text-shadow: 0 0 10px var(--secondary-green), 0 0 20px var(--secondary-green), 0 0 30px var(--accent-green), 0 0 40px var(--accent-green), 0 0 50px var(--accent-green); }
+}
+
+/* === End Screen (matches start layout) === */
+#end-screen {
+  display: none; /* JS toggles */
+  position: fixed; inset: 0; z-index: 200;
+  /* background image handled by JS <img id="end-bg"> or by #end-screen background */
+}
+#end-frame { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 100%; height: 100%; max-width: 100vw; max-height: 100vh; overflow: hidden; background: #000; image-rendering: pixelated; }
+#end-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+#end-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; padding: 1rem; pointer-events: none; }
+
+/* Title (shared feel) */
+#end-title {
+  font-size: clamp(1.8rem, 6.2vw, 4rem);
+  font-weight: 900; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--primary-green);
+  text-shadow: 0 0 5px var(--secondary-green), 0 0 10px var(--secondary-green), 0 0 20px var(--accent-green);
+}
+
+/* Score stack centered, bold yellow, bigger */
+#end-stats {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 0.25rem; min-width: 240px;
+}
+#end-stats > div:first-child {
+  color: var(--hud-yellow);
+  font-size: clamp(1.25rem, 3.5vw, 2.25rem);
+  font-weight: 900; letter-spacing: 1px;
+  text-shadow: 0 0 6px rgba(255,193,7,.45);
+}
+#end-stats > div:nth-child(2) {
+  opacity: .9; color: #ffe59e;
+  font-size: clamp(1rem, 3vw, 1.5rem);
+}
+
+/* Buttons  shared style for start + end */
+#start-button, #restart-button {
+  pointer-events: auto;
+  font-family: var(--military-font);
+  font-size: clamp(0.9rem, 3.0vw, 1.2rem);
+  letter-spacing: 0.1em; text-transform: uppercase;
+  width: min(260px, 80vw);
+  padding: 1em 1.5em; margin-top: -4vh;
+  cursor: pointer; background: linear-gradient(135deg, var(--dark-green), #3a4a1a);
+  border: 3px solid var(--secondary-green); color: var(--primary-green);
+  border-radius: 12px;
+  box-shadow: 0 0 15px var(--glow-color), inset 0 1px 0 rgba(255,255,255,0.1);
+  transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+  position: relative; overflow: hidden; transform: translateZ(0);
+}
+#start-button:disabled { cursor: wait; background: #555; color: #999; border-color: #777; }
+#start-button::before, #restart-button::before {
+  content: ""; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  transition: left 0.5s ease;
+}
+#start-button:not(:disabled):hover, #restart-button:hover {
+  background: linear-gradient(135deg, var(--secondary-green), #a0ffa0);
+  color: var(--darker-green);
+  box-shadow: 0 0 20px var(--strong-glow), inset 0 1px 0 rgba(255,255,255,0.2);
+}
+#start-button:not(:disabled):hover::before, #restart-button:hover::before { left: 100%; }
+
+/* Legacy end-screen fallbacks (kept for compatibility) */
+#end-message { font-size: clamp(3rem, 8vw, 6rem); text-transform: uppercase; color: #ff4d4d; text-shadow: 0 0 15px #ff0000; margin-top: 0; }
+#final-score, #best-score { margin-top: 10px; font-size: clamp(1.5rem, 4vw, 2.5rem); }
+
+/* In-Game UI (optional wrapper) */
+#game-ui { position: fixed; top: 10px; left: 10px; z-index: 100; color: var(--primary-green); text-shadow: 0 0 6px var(--secondary-green); font-size: 1.5rem; text-align: left; }
+
+/* Hidden gameover img (referenced by JS) */
+#gameover-img { display: none; }
+
+/* ===== Jungle Siege Responsive HUD Fix ===== */
+#game-ui, .hud, .hud-bar, #hud, #bottom-ui { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: stretch; overflow: visible !important; }
+
+/* Intel bar docked inline on HUD row (no cropping) */
+#intel-bar, .intel-bar {
+  position: static !important; inset: auto !important; transform: none !important;
+  width: auto !important; max-width: 100% !important; margin-left: auto;
+  display: flex; flex-wrap: wrap; gap: 6px 8px; padding: 4px 8px;
+  background: rgba(0,0,0,0.35); border-radius: 8px; min-height: 36px;
+}
+#intel-bar *, .intel-bar * { min-width: 0; }
+#intel-bar .intel-item, .intel-bar .intel-item { flex: 0 1 auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 720px) { #intel-bar .intel-item, .intel-bar .intel-item { flex: 1 1 45%; } }
+@media (max-width: 520px) { #intel-bar .intel-item, .intel-bar .intel-item { flex: 1 1 100%; } }
+@media (max-height: 500px) and (orientation: landscape) { #intel-bar, .intel-bar { padding: 3px 6px; font-size: 0.9rem; } }
+
+#intel-bar, .intel-bar { max-width: 100%; min-width: 0; }
+
+/* Keep overlays mouse-transparent except buttons */
+#start-screen, #end-screen, #boss-announcement { pointer-events: none; }
+#start-button, #restart-button { pointer-events: auto; }
+
+/* Optional Roach DOM overlay */
+#roach-panel { position: fixed; right: 10px; top: 10px; transform-origin: top right; transform: scale(0.8); max-width: min(40vw, 420px); z-index: 5; }
+
+
+/* patch_roach_hud_fix.css */
+
+/* --- Patch: roach HUD scaling & boss hero removal --- */
+.incoming-boss, .boss-hero, .boss-hero-text, .incoming, .bossIncoming, .incomingBoss,
+#incoming-boss, #boss-hero, #boss-hero-text, #incoming, #bossIncoming, #incomingBoss {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+.roach, #roach, .roach-panel, .roach-pannel, #roach-panel, #roach-pannel,
+.roach-comms, .roach-comms-text, #roach-comms, #roach-comms-text {
+  transform: scale(1.2) !important;
+  z-index: 99999 !important;
+  position: relative !important;
+  pointer-events: auto;
+}
+
+.roach-comms, .roach-comms-text { 
+  font-size: 120% !important; 
+  line-height: 1.2 !important;
+}
+/* Ensure HUD doesn't overlay roach */
+.hud, #hud, .ui-hud, #ui-hud { z-index: 1000 !important; }
+
+/* ==== Consolidated Patch Styles ==== */
+.incoming-boss, .boss-hero, .boss-hero-text, .incoming, .bossIncoming, .incomingBoss,
+#incoming-boss, #boss-hero, #boss-hero-text, #incoming, #bossIncoming, #incomingBoss {
+  display: none !important; opacity: 0 !important; visibility: hidden !important;
+}
+.roach, #roach, .roach-panel, .roach-pannel, #roach-panel, #roach-pannel,
+.roach-comms, .roach-comms-text, #roach-comms, #roach-comms-text {
+  transform: scale(1.2) !important; transform-origin: left top !important;
+  z-index: 99999 !important; position: relative !important;
+}
+.roach-comms, .roach-comms-text { font-size: 120% !important; line-height: 1.2 !important; }
+.hud, #hud, .ui-hud, #ui-hud { z-index: 1000 !important; }
+.cinematic-root { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Courier New", monospace; }
+.cinematic-title { text-transform: uppercase; letter-spacing: 2px; }
+.cinematic-body { white-space: pre-wrap; }
+
+/* === HUD MERGED OVERRIDE (APPENDED) ===
+   Consolidated HUD rules (single-line, wolfenstein bevel, roach comms)
+   This block consolidates previous scattered HUD files and ensures a
+   single source of truth for HUD styling. It intentionally uses
+   specificity and conservative !important usage to avoid conflicts.
+*/
+
+/* Ensure variables exist: primary green is defined above */
+#screen-hud {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 400 !important;
+  pointer-events: none !important;
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  font-family: 'Press Start 2P', monospace !important;
+}
+
+/* Top and bottom unified panel */
+#screen-hud .hud-top,
+#screen-hud .hud-bottom {
+  background: linear-gradient(180deg,#3b3b3b 0%, #1c1c1c 100%) !important;
+  border: 2px solid #666 !important;
+  border-top-color: #cfcfcf !important;
+  border-left-color: #cfcfcf !important;
+  border-bottom-color: #2a2a2a !important;
+  border-right-color: #2a2a2a !important;
+  border-radius: 6px !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 3px 6px rgba(0,0,0,0.6) !important;
+  color: var(--primary-green) !important;
+  font-family: 'Press Start 2P', monospace !important;
+  pointer-events: none !important;
+}
+
+/* Inner tile bevel */
+#screen-hud .hud-top .tag,
+#screen-hud .hud-bottom .hud-seg {
+  background: linear-gradient(180deg,#2b2b2b,#151515) !important;
+  border: 1px solid #444 !important;
+  border-top-color: #dcdcdc !important;
+  border-left-color: #dcdcdc !important;
+  border-bottom-color: #232323 !important;
+  border-right-color: #232323 !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 1px 0 rgba(0,0,0,0.6) !important;
+  border-radius: 4px !important;
+  padding: 2px 6px !important;
+}
+
+/* Compact single-line layout */
+#screen-hud .hud-top { position: absolute !important; top: 8px !important; left: 8px !important; right: 8px !important; height: 16px !important; padding: 2px 8px !important; display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 6px !important; }
+#screen-hud .hud-bottom { position: absolute !important; bottom: 8px !important; left: 8px !important; right: 8px !important; height: 16px !important; padding: 2px 8px !important; display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 8px !important; }
+
+#screen-hud .hud-top .tag,
+#screen-hud .hud-bottom .hud-seg {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  padding: 2px 6px !important;
+  min-width: 60px !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 3px !important;
+  box-shadow: none !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+}
+
+#screen-hud .hud-top .lbl,
+#screen-hud .hud-bottom .hud-label {
+  font-size: 8px !important;
+  text-transform: uppercase !important;
+  color: var(--primary-green) !important;
+  white-space: nowrap !important;
+}
+#screen-hud .hud-top .val,
+#screen-hud .hud-bottom .hud-value {
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  color: var(--primary-green) !important;
+  white-space: nowrap !important;
+}
+
+#screen-hud .hp-bar { height: 8px !important; max-width: 120px !important; border: 1px solid #333 !important; background: linear-gradient(180deg,#1d0a0a,#2b0a0a) !important; }
+#screen-hud .hp-fill { left: 1px !important; top: 1px !important; bottom: 1px !important; }
+#screen-hud .pips { gap: 6px !important; }
+#screen-hud .pip { width: 6px !important; height: 8px !important; border: 1px solid #555 !important; }
+#screen-hud .pip.on { background: var(--ammo-on) !important; border-color: #888 !important; }
+
+/* Boss precedence */
+#screen-hud.boss-mode .hud-top { display: none !important; }
+#screen-hud .boss-hp-container { z-index: 500 !important; }
+
+/* Roach comms matching */
+.roach-comms-panel,
+.roach-comms-incoming {
+  background: linear-gradient(180deg,#2b2b2b,#151515) !important;
+  border: 1px solid #444 !important;
+  border-top-color: #dcdcdc !important;
+  border-left-color: #dcdcdc !important;
+  border-bottom-color: #232323 !important;
+  border-right-color: #232323 !important;
+  border-radius: 6px !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 3px 6px rgba(0,0,0,0.45) !important;
+  color: var(--primary-green) !important;
+  font-family: 'Press Start 2P', monospace !important;
+  pointer-events: none;
+  padding: 6px 10px !important;
+}
+
+@media (max-width:600px),(max-height:450px) {
+  #screen-hud .hud-top, #screen-hud .hud-bottom { height: 14px !important; padding: 2px 6px !important; }
+  #screen-hud .hud-top .tag, #screen-hud .hud-bottom .hud-seg { min-width: 50px !important; gap: 4px !important; padding: 2px 4px !important; }
+  #screen-hud .hud-top .lbl, #screen-hud .hud-bottom .hud-label { font-size: 7px !important; }
+  #screen-hud .hud-top .val, #screen-hud .hud-bottom .hud-value { font-size: 8px !important; }
+  #screen-hud .hp-bar { height: 6px !important; max-width: 100px !important; }
+  #screen-hud .pip { width: 5px !important; height: 6px !important; }
+  .roach-comms-panel, .roach-comms-incoming { padding: 4px 8px !important; border-radius: 4px !important; }
+}
+
+/* End HUD MERGED OVERRIDE */

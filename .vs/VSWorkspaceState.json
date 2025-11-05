@@ -1,0 +1,14 @@
+{
+  "ExpandedNodes": [
+    "\\assets",
+    "\\src",
+    "\\src\\core",
+    "\\src\\game",
+    "\\src\\js",
+    "\\src\\scenes",
+    "\\src\\story",
+    "\\src\\systems",
+    "\\src\\ui"
+  ],
+  "PreviewInSolutionExplorer": false
+}
