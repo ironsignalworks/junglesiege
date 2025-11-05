@@ -451,7 +451,7 @@ window.restartGame = () => {
     }
 
     // Recreate a fresh scene and start
-    import("./scenes/GameScene.js").then(({ GameScene: GameSceneMod }) => {
+    import("./GameScene.js").then(({ GameScene: GameSceneMod }) => {
       const scene = new GameSceneMod();
       const startScreen = document.getElementById("start-screen");
       const canvas = document.getElementById("gameCanvas");

@@ -1640,9 +1640,31 @@ export class GameScene {
       }
     }
 
-    if (state.health <= 0) { 
-      showEndScreen("fail"); 
-      return; 
+    if (state.health <= 0) {
+      try {
+        showEndScreen("fail");
+      } catch (e) {
+        console.error("[GameScene] showEndScreen failed in update() - falling back:", e);
+        try {
+          const fallback = document.createElement('div');
+          fallback.id = 'end-screen';
+          fallback.className = 'screen-container-4x3';
+          fallback.style.cssText = 'position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(100vw,calc(100vh*4/3));height:calc(min(100vw,calc(100vh*4/3))*3/4);display:flex;align-items:center;justify-content:center;text-align:center;background:#000;border:6px solid #ff6b6b;box-shadow:inset 3px 3px 0 #ff9f9f,inset -3px -3px 0 #3d0d0d;z-index:20000;';
+          fallback.innerHTML = `
+            <div style="color:#ff4d4d;font-weight:900;font-size:clamp(2rem,6vw,4rem);text-shadow:0 0 15px #ff4d4d">MISSION FAILED</div>
+            <button id="restart-button" style="margin-top:1rem;font-family:inherit;padding:1em 1.5em;cursor:pointer;background:#daa520;border:3px solid #ffc107;color:#000;border-radius:10px">RESTART</button>
+          `;
+          document.body.appendChild(fallback);
+          const btn = fallback.querySelector('#restart-button');
+          if (btn) btn.onclick = () => {
+            try { if (typeof window.restartGame === 'function') return void window.restartGame(); } catch {}
+            location.reload();
+          };
+        } catch (e2) {
+          console.error("[GameScene] Fallback end screen also failed:", e2);
+        }
+      }
+      return;
     }
 
     // SIMPLIFIED Round loop
@@ -1687,7 +1709,29 @@ export class GameScene {
     if (state.__ended) return; state.__ended = true;
     state.gameStarted = false; try { window.dispatchEvent(new Event("end-screen-open")); } catch {}
     resetNapalm();
-    showEndScreen("fail");
+    try {
+      showEndScreen("fail");
+    } catch (e) {
+      console.error("[GameScene] showEndScreen failed in gameOver() - falling back:", e);
+      try {
+        const fallback = document.createElement('div');
+        fallback.id = 'end-screen';
+        fallback.className = 'screen-container-4x3';
+        fallback.style.cssText = 'position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(100vw,calc(100vh*4/3));height:calc(min(100vw,calc(100vh*4/3))*3/4);display:flex;align-items:center;justify-content:center;text-align:center;background:#000;border:6px solid #ff6b6b;box-shadow:inset 3px 3px 0 #ff9f9f,inset -3px -3px 0 #3d0d0d;z-index:20000;';
+        fallback.innerHTML = `
+          <div style="color:#ff4d4d;font-weight:900;font-size:clamp(2rem,6vw,4rem);text-shadow:0 0 15px #ff4d4d">MISSION FAILED</div>
+          <button id="restart-button" style="margin-top:1rem;font-family:inherit;padding:1em 1.5em;cursor:pointer;background:#daa520;border:3px solid #ffc107;color:#000;border-radius:10px">RESTART</button>
+        `;
+        document.body.appendChild(fallback);
+        const btn = fallback.querySelector('#restart-button');
+        if (btn) btn.onclick = () => {
+          try { if (typeof window.restartGame === 'function') return void window.restartGame(); } catch {}
+          location.reload();
+        };
+      } catch (e2) {
+        console.error("[GameScene] Fallback end screen also failed:", e2);
+      }
+    }
     
     // Clean up resources
     animPool.length = 0;
