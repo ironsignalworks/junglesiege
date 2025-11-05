@@ -86,6 +86,7 @@ export function createIntroOverlay(config = {}) {
 
   function attachInput() {
     if (keyHandlerBound) return;
+    try { state.overlayActive = true; } catch {}
     keyHandlerBound = (e) => {
       if (!active) return;
 
@@ -127,6 +128,7 @@ export function createIntroOverlay(config = {}) {
     keyHandlerBound = null;
     try { window.removeEventListener("pointerdown", onPointerAdvance); } catch {}
     try { window.removeEventListener("click", onPointerAdvance); } catch {}
+    try { state.overlayActive = false; } catch {}
   }
 
   function onPointerAdvance(ev) {

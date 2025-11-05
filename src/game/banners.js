@@ -5,7 +5,8 @@ import {
 } from "./constants.js";
 
 export function pushBanner({ type = "ribbon", text = "" }) {
-  state.bannerQueue.push({ type, text, t0: 0 });
+  state._bannerRow = ((state._bannerRow || 0) + 1) % 3; // cycle 0..2
+  state.bannerQueue.push({ type, text, t0: 0, _row: state._bannerRow });
 }
 
 // Set to 1 if you want *no stacking*, 2 for stylish stack (with gradient).
@@ -24,8 +25,10 @@ function drawBanner(ctx, W, H, item, i, stackedCount) {
   const outProg = t > outStart ? Math.min(1, (t - outStart) / BANNER_OUT_MS) : 0;
   const lifeOver = t >= (BANNER_IN_MS + BANNER_SHOW_MS + BANNER_OUT_MS);
 
-  // vertical stacking offset
-const yBase = H * 0.16 + (i * 58); // tighter stack, less overlap
+  // vertical placement: distribute across rows (different heights) and stack offset per row
+  const row = Number.isFinite(item._row) ? item._row : 0; // 0,1,2
+  const baseFrac = [0.14, 0.28, 0.42][row] || 0.14;
+  const yBase = Math.floor(H * baseFrac) + (i * 52);
 const alpha = Math.max(0, 0.75 * (1 - outProg)); // slightly dimmer
 const _stackDim = Math.max(0.55, 1 - (i * 0.25)); // dim back banners
 

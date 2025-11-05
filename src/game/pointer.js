@@ -38,6 +38,8 @@ export function attachPointer() {
   const onMouseDown = (e) => {
     e.preventDefault();
     state.pointerDown = true;
+    // Suspend firing when overlays are active (boss intro/story cards) or input locked
+    if (state.inputLocked || state.bossAnnouncementShowing || state.overlayActive) return;
     try { firePlayerBullet(); } catch {}
   };
   const onMouseUp = () => { state.pointerDown = false; };
@@ -54,6 +56,7 @@ export function attachPointer() {
     e.preventDefault();
     state.pointerDown = true;
     state._pointerInside = true;
+    if (state.inputLocked || state.bossAnnouncementShowing || state.overlayActive) return;
     try { firePlayerBullet(); } catch {}
   };
   const onTouchEnd = () => { state.pointerDown = false; state._pointerInside = false; };

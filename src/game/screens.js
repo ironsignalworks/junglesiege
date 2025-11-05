@@ -179,11 +179,6 @@ export function showEndScreen(kind = "fail", opts = {}) {
     location.reload();
   };
 
+  // Gate restart strictly behind explicit click; ignore keyboard to avoid accidental restarts
   btn.onclick = restart;
-  function keyHandler(e) {
-    const overlayVisible = !!document.getElementById('end-screen');
-    if (!overlayVisible) return;
-    if (e.code === 'Enter' || e.code === 'Space') { e.preventDefault(); restart(); }
-  }
-  document.addEventListener("keydown", keyHandler, true);
 }
