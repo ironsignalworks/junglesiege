@@ -716,12 +716,16 @@ export class GameScene {
       return;
     }
 
-    // Input & movement
+    // Input & movement (smooth keyboard like mouse)
     if (!state.inputLocked) {
-      if (state.keyLeft)  state.tank.x -= 5;
-      if (state.keyRight) state.tank.x += 5;
-      if (state.keyUp)    state.tank.y -= 5;
-      if (state.keyDown)  state.tank.y += 5;
+      const maxSpeed = 14; // faster than before
+      const smooth = 0.35; // smoothing factor for acceleration
+      const dirX = (state.keyRight ? 1 : 0) - (state.keyLeft ? 1 : 0);
+      state._keyVX = Number.isFinite(state._keyVX) ? state._keyVX : 0;
+      const targetVX = dirX * maxSpeed;
+      state._keyVX += (targetVX - state._keyVX) * smooth;
+      state.tank.x += state._keyVX;
+      // keep vertical anchored to bottom; ignore up/down for now
     }
 
     // Hook drag

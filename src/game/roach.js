@@ -7,9 +7,9 @@ const ROACH_MARGIN = 30;      // Reduced margin
 const BOX_W = 300;            // Smaller box (was 350)
 const BOX_H = 55;             // Smaller height (was 65)
 
-// REPOSITIONED: Move roach comms closer to HUD (just above it)
-const PANEL_Y_FRACTION  = 0.78;  // Much lower - just above HUD (78% down)
-const RIBBON_Y_FRACTION = 0.65;  // Alert ribbon in lower area (65% down)
+// Position roach comms: move down by ~15% from current placement
+const PANEL_Y_FRACTION  = 0.63;  // was 0.48 – lowered by 0.15
+const RIBBON_Y_FRACTION = 0.50;  // was 0.35 – lowered by 0.15
 
 const EVENT_COOLDOWNS = {
   LOW_AMMO: 5000, LOW_HEALTH: 5000, ROUND_START: 800, ROUND_CLEAR: 1200,
@@ -73,6 +73,8 @@ export function roachEvent(name, data = {}) {
 
 export function updateAndRenderRoach(ctx, now) {
   const r = state.roach; if (!r || r.muted) return;
+  // Hide comms during boss announcement/intro and story overlays
+  if (state.bossAnnouncementShowing) return;
 
   // activate next queued line
   if (!r.active && r.queue.length) {

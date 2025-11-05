@@ -30,14 +30,12 @@ export function showEndScreen(kind = "fail", opts = {}) {
     document.body.appendChild(screen);
   }
   
-  // FORCE 4:3 positioning like other screens with ENHANCED BEVELED STYLING
+  // Fullscreen overlay styling
   Object.assign(screen.style, {
     position: "fixed",
-    left: "50%",
-    top: "50%",
-    transform: "translate(-50%, -50%)",
-    width: "min(100vw, calc(100vh * 4 / 3))",
-    height: "calc(min(100vw, calc(100vh * 4 / 3)) * 3 / 4)",
+    inset: "0",
+    width: "100vw",
+    height: "100vh",
     background: "#000",
     zIndex: "20000",
     display: "flex",
@@ -45,22 +43,7 @@ export function showEndScreen(kind = "fail", opts = {}) {
     alignItems: "center",
     justifyContent: "center",
     textAlign: "center",
-    // ENHANCED BEVELED BORDER STYLING
-    border: isVictory ? "6px solid" : "6px solid",
-    borderColor: isVictory ? 
-      "#c7ffc7 #1a5a1a #1a5a1a #c7ffc7" : 
-      "#ff6b6b #5a1a1a #5a1a1a #ff6b6b",
-    boxShadow: isVictory ? 
-      `inset 3px 3px 0 #9fdf9f, 
-       inset -3px -3px 0 #0d3d0d, 
-       inset 6px 6px 0 #7fcf7f, 
-       inset -6px -6px 0 #083308, 
-       0 0 30px rgba(199, 255, 199, 0.4)` : 
-      `inset 3px 3px 0 #ff9f9f,
-       inset -3px -3px 0 #3d0d0d,
-       inset 6px 6px 0 #ff7f7f,
-       inset -6px -6px 0 #330808,
-       0 0 30px rgba(255, 107, 107, 0.4)`,
+    // No decorative border for fullscreen
     overflow: "hidden",
     pointerEvents: "all",
   });

@@ -36,27 +36,11 @@
 }
 
 /* ---------- TOP BAR (Round/Sector) ---------- */
-.hud-top{
-  position:absolute; top:8px; left:8px; right:8px; height:32px;
-  display:flex; align-items:center; justify-content:space-between; gap:16px; padding:6px 12px;
-  pointer-events:none; z-index:20;
-}
-.hud-top { composes: hud-bezel; } /* if your build tool supports it */
-.hud-top { /* fallback when compose isn't available */
-  background:
-    linear-gradient(#090909, #090909) padding-box,
-    linear-gradient(90deg, rgba(255,193,7,.4), rgba(255,193,7,0), rgba(255,193,7,.4)) border-box;
-  border: 2px solid transparent;
-  box-shadow:
-    inset 0 1px 0 var(--steel-5),
-    inset 0 -1px 0 var(--steel-0),
-    0 6px 20px rgba(0,0,0,.65);
-  color: var(--hud-green);
-  text-shadow: 0 1px 0 #000;
-}
+/* Remove top HUD entirely */
+.hud-top{ display:none !important; }
 
-.hud-top .cluster{ display:flex; gap:12px; align-items:center; }
-.hud-top .tag{
+.hud-bottom .cluster{ display:flex; gap:12px; align-items:center; }
+.hud-bottom .tag{
   display:flex; align-items:center; gap:6px; padding:2px 8px;
   border-radius:0;
   pointer-events:none;
@@ -64,60 +48,57 @@
   border: 1px solid #242424;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.06), inset 0 -1px 0 rgba(0,0,0,.6);
 }
-.hud-top .lbl{ color:var(--accent-warn); font-size:8px; text-transform:uppercase; }
-.hud-top .val{ color:var(--hud-green); font-size:8px; font-weight:700; }
+.hud-bottom .lbl{ color:var(--accent-warn); font-size:12px; text-transform:uppercase; letter-spacing:.08em; }
+.hud-bottom .val{ color:var(--hud-green); font-size:12px; font-weight:900; letter-spacing:.06em; }
 
 /* Hide top bar in boss fights, like before */
 #screen-hud.boss-mode .hud-top{ display:none; }
 
 /* ---------- BOTTOM BAR (HP/Ammo/Score) ---------- */
 .hud-bottom{
-  position:absolute; bottom:8px; left:8px; right:8px; height:40px;
-  display:flex; align-items:center; justify-content:space-between; gap:16px; padding:8px 12px;
+  position:absolute; bottom:10px; left:10px; right:10px; height:64px;
+  display:flex; align-items:center; justify-content:space-between; gap:18px; padding:12px 16px;
   pointer-events:none; z-index:20;
-  background:
-    linear-gradient(#090909, #090909) padding-box,
-    linear-gradient(90deg, rgba(255,193,7,.4), rgba(255,193,7,0), rgba(255,193,7,.4)) border-box;
-  border: 2px solid transparent;
-  box-shadow:
-    inset 0 1px 0 var(--steel-5),
-    inset 0 -1px 0 var(--steel-0),
-    0 -6px 20px rgba(0,0,0,.65);
+  /* Match boss panel steel look more closely */
+  background: linear-gradient(180deg, var(--steel-3), var(--steel-2));
+  border: 2px solid #232323;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.08), inset 0 -2px 0 rgba(0,0,0,.8), 0 -6px 20px rgba(0,0,0,.65);
   color: var(--hud-green);
   text-shadow: 0 1px 0 #000;
 }
 
-.hud-seg{ display:flex; align-items:center; gap:10px; }
-.hud-label{ color:var(--accent-warn); font-size:8px; text-transform:uppercase; white-space:nowrap; }
-.hud-value{ color:var(--hud-green); font-size:8px; font-weight:700; white-space:nowrap; }
+.hud-seg{ display:flex; align-items:center; gap:12px; }
+.hud-label{ color:var(--accent-warn); font-size:12px; text-transform:uppercase; white-space:nowrap; letter-spacing:.08em; }
+.hud-value{ color:var(--hud-green); font-size:14px; font-weight:900; white-space:nowrap; letter-spacing:.06em; }
 
 /* HP bar — steel groove */
 .hp-bar{
-  position:relative; width:160px; height:12px; pointer-events:none;
+  position:relative; width:220px; height:20px; pointer-events:none;
+  /* EXACTLY match boss bar styling */
   background: linear-gradient(180deg, var(--steel-1), var(--steel-2));
-  border:1px solid #232323;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.08),
-    inset 0 -1px 0 rgba(0,0,0,.7);
+  border: 2px solid #232323;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.08), inset 0 -2px 0 rgba(0,0,0,.8), 0 2px 6px rgba(0,0,0,.35);
 }
 .hp-fill{
   position:absolute; left:1px; top:1px; bottom:1px;
-  background: linear-gradient(90deg, #b54646, #e05353);
-  box-shadow: 0 0 2px rgba(229,62,62,.7);
-  transition: width .25s ease;
+  /* EXACTLY match boss bar fill */
+  background: linear-gradient(90deg, #8a1111, #e05353);
+  box-shadow: inset 0 0 8px rgba(0,0,0,.35), 0 0 3px rgba(229,62,62,.7);
+  transition: width .2s ease-out;
 }
 
 /* Ammo pips — steel casings with amber on */
-.pips{ display:flex; gap:3px; align-items:center; }
+.pips{ display:flex; gap:4px; align-items:center; }
 .pip{
-  width:10px; height:12px;
+  width:14px; height:18px;
   background: linear-gradient(180deg, var(--steel-3), var(--steel-2));
   border:1px solid #2a2a2a;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.05), inset 0 -1px 0 rgba(0,0,0,.7);
 }
 .pip.on{
-  background: linear-gradient(180deg, #f6c446, #c38c10);
-  border-color: #6a4f07;
+  background: linear-gradient(180deg, #f6c446, #9e6f0c);
+  border-color: #5a4207;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.1), inset 0 -1px 0 rgba(0,0,0,.8), 0 0 4px rgba(255,193,7,.35);
 }
 
 /* Make boss HP shell use exact same steel styling on name/bar containers */
@@ -142,10 +123,9 @@
 }
 
 /* 1) Match both class and id versions */
-#screen-hud .hud-top,
 #screen-hud .hud-bottom,
-.hud-top, .hud-bottom,
-#hud-top, #hud-bottom {
+.hud-bottom,
+#hud-bottom {
   /* size/position stays as you had */
   background:
     linear-gradient(#090909, #090909) padding-box,
@@ -160,9 +140,9 @@
 }
 
 /* 2) Inner tag/plates look (round/sector capsules etc.) */
-#screen-hud .hud-top .tag,
-.hud-top .tag,
-#hud-top .tag {
+#screen-hud .hud-bottom .tag,
+.hud-bottom .tag,
+#hud-bottom .tag {
   background: linear-gradient(180deg, var(--steel-3), var(--steel-2)) !important;
   border: 1px solid #242424 !important;
   box-shadow:
@@ -204,3 +184,26 @@
     inset 0 -1px 0 rgba(0,0,0,.6),
     0 0 2px rgba(255,193,7,.25) !important;
 }
+
+/* Boss HP bar visuals (chunky) */
+.boss-hp-bar{
+  position: relative; width: clamp(240px, 60vw, 720px); height: 22px;
+  background: linear-gradient(180deg, var(--steel-1), var(--steel-2));
+  border: 2px solid #232323;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.08), inset 0 -2px 0 rgba(0,0,0,.8), 0 2px 6px rgba(0,0,0,.35);
+}
+.boss-hp-fill{
+  position:absolute; left:2px; top:2px; bottom:2px;
+  background: linear-gradient(90deg, #8a1111, #e05353);
+  box-shadow: inset 0 0 8px rgba(0,0,0,.35), 0 0 3px rgba(229,62,62,.7);
+}
+.boss-name-text, .boss-hp-text{
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .06em;
+}
+
+/* Hide boss bar by default; show only when boss is active */
+.boss-hp-container { display: none; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); gap: 10px; align-items: center; }
+#screen-hud.boss-active .boss-hp-container { display: flex; }

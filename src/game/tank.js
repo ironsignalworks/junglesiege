@@ -79,27 +79,7 @@ export function drawTank(ctx) {
   const powered = !!state.meatgrinderMode;
 
   if (drawable) {
-    if (powered) {
-      // subtle neon ellipse under/behind the tankno labels
-      ctx.save();
-      ctx.globalCompositeOperation = "lighter";
-      ctx.globalAlpha = 0.28;
-      ctx.shadowColor = "rgba(255, 90, 60, 1)";
-      ctx.shadowBlur = 28;
-      ctx.fillStyle = "rgba(255, 120, 90, 0.55)";
-      ctx.beginPath();
-      ctx.ellipse(
-        (t.x + t.width / 2) | 0,
-        (t.y + t.height * 0.86) | 0,
-        t.width * 0.62,
-        t.height * 0.36,
-        0,
-        0,
-        Math.PI * 2
-      );
-      ctx.fill();
-      ctx.restore();
-    }
+    // Remove shadow/glow ellipse under tank when meatgrinder is active (clean silhouette)
 
     // draw tank sprite
     ctx.drawImage(img, t.x | 0, t.y | 0, t.width, t.height);

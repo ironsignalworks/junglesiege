@@ -13,7 +13,7 @@ const overlay = createIntroOverlay({
 
   // Typing / pacing (faster, shorter hold)
   preDelay: 300,
-  typeDelay: 22,
+  typeDelay: 30,
   doneHold: 540,
 
   // Make the dimmer lighter so scene stays visible

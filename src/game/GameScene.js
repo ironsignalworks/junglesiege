@@ -892,7 +892,7 @@ export class GameScene {
     state.killStreak = 0;
     state._spawnedAtomicForThisStreak = false;
     state.powerups = [];
-    state.meatgrinderMode = false;
+    state.meatgrinderMode = false; state.meatgrinderUntil = 0;
     state._lastFlameAt = 0;
 
     // ribbons/overlays
@@ -1060,15 +1060,13 @@ export class GameScene {
     try { ctx.setTransform(1, 0, 0, 1, 0, 0); } catch {}
     ctx.clearRect(0, 0, state.canvas.width, state.canvas.height);
 
-    // overlays guard (we still draw a gate strip on top)
+    // overlays guard (no top gate strip)
     if (isKurtzIntroActive && isKurtzIntroActive()) {
       updateAndRenderKurtzIntro(ctx, now);
-      drawOverlayGate(ctx);
       return;
     }
     if (isStoryCardActive && isStoryCardActive()) {
       renderStoryCards(ctx, now);
-      drawOverlayGate(ctx);
       return;
     }
 
@@ -1594,11 +1592,11 @@ export class GameScene {
       }
     }
 
-    // Meatgrinder Mode trigger
-    if (!state.meatgrinderMode && (state.score || 0) >= MEATGRINDER_SCORE) {
-      state.meatgrinderMode = true;
-      state.tankSpriteKey = "tank3.png";
-      state.screenShake = Math.max(state.screenShake || 0, 8);
+    // Meatgrinder Mode expiry (10s window)
+    if (state.meatgrinderMode && Number.isFinite(state.meatgrinderUntil) && (Date.now() > state.meatgrinderUntil)) {
+      state.meatgrinderMode = false; state.meatgrinderUntil = 0;
+      state.meatgrinderUntil = 0;
+      state.tankSpriteKey = "tank.png";
     }
 
     // Flamethrower plume
@@ -1689,6 +1687,16 @@ export class GameScene {
         console.log("Triggering boss", state.bossIndex, bossDefinitions[state.bossIndex]?.name);
         showBossAnnouncement();
       }
+      // Watchdog for final boss (Kurtz) to avoid stalls/blank screens
+      if (state.bossIndex === bossDefinitions.length - 1) {
+        state._finalBossWatchdog = state._finalBossWatchdog || Date.now();
+        if ((Date.now() - state._finalBossWatchdog) > 1500) {
+          try { showBossAnnouncement(); } catch {}
+          state._finalBossWatchdog = Date.now();
+        }
+      } else {
+        state._finalBossWatchdog = 0;
+      }
     }
   }
 
@@ -1703,6 +1711,74 @@ export class GameScene {
     try { 
       drawHUD(ctx); 
     } catch (e) {} 
+
+    // Meatgrinder badge (10s buff indicator) with pause on intros/cards
+    try {
+      const overlaying = !!state.bossAnnouncementShowing || (isKurtzIntroActive && isKurtzIntroActive()) || (isStoryCardActive && isStoryCardActive());
+      if (overlaying) {
+        if (state.meatgrinderMode && !state._mgPausedAt) state._mgPausedAt = Date.now();
+      } else if (state.meatgrinderMode && state._mgPausedAt) {
+        const delta = Date.now() - state._mgPausedAt;
+        state.meatgrinderUntil = (state.meatgrinderUntil || 0) + delta;
+        state._mgPausedAt = 0;
+      }
+
+      if (!overlaying && state.meatgrinderMode && Number.isFinite(state.meatgrinderUntil)) {
+        const remainingMs = Math.max(0, state.meatgrinderUntil - Date.now());
+        const secs = Math.ceil(remainingMs / 1000);
+        const label = `MEATGRINDER ${secs}s`;
+        const padX = 12, padY = 8;
+        ctx.save();
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        ctx.font = "12px 'Press Start 2P', monospace";
+        const tw = ctx.measureText(label).width;
+        const bw = Math.max(160, Math.ceil(tw) + padX * 2);
+        const bh = 26;
+        const x = 14;
+        const y = (state.canvas.height | 0) - (state.bottomBarHeight || 96) - bh - 10;
+        // steel panel
+        const grd = ctx.createLinearGradient(0, y, 0, y + bh);
+        grd.addColorStop(0, '#2a2a2a');
+        grd.addColorStop(1, '#1f1f1f');
+        ctx.fillStyle = grd;
+        ctx.fillRect(x, y, bw, bh);
+        ctx.strokeStyle = '#232323';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x + 1, y + 1, bw - 2, bh - 2);
+        // text with slight glow
+        ctx.shadowColor = 'rgba(255, 193, 7, 0.35)';
+        ctx.shadowBlur = 6;
+        ctx.fillStyle = '#ffc107';
+        ctx.fillText(label, x + padX, y + (bh - 14) / 2);
+        ctx.restore();
+      }
+    } catch {}
+
+    // Lightweight DOM HUD sync (responsive and up-to-date)
+    try {
+      const now = performance.now?.() ?? Date.now();
+      state.__lastHudSync = state.__lastHudSync || 0;
+      if (now - state.__lastHudSync >= 100) { // throttle ~10fps
+        const hpEl = document.getElementById('hud-health-value');
+        const hpFill = document.getElementById('hud-hp-fill');
+        const ammoEl = document.getElementById('hud-ammo-value');
+        const scoreEl = document.getElementById('hud-score');
+        const roundEl = document.getElementById('hud-round');
+        const sectorEl = document.getElementById('hud-sector');
+
+        if (hpEl) hpEl.textContent = String(Math.max(0, Math.floor(state.health ?? 0)));
+        if (hpFill) hpFill.style.width = `${Math.max(0, Math.min(100, state.health ?? 0))}%`;
+        if (ammoEl) ammoEl.textContent = (state.ammo === Infinity ? '∞' : String(state.ammo ?? 0));
+        if (scoreEl) scoreEl.textContent = String(state.score ?? 0).padStart(6, '0');
+        if (roundEl) roundEl.textContent = String(state.round ?? 1).toString().padStart(2, '0');
+        if (sectorEl) sectorEl.textContent = String(state.sector ?? 'ALPHA');
+
+        // Do not toggle any separate DOM boss HUD; use only the canvas boss bar
+
+        state.__lastHudSync = now;
+      }
+    } catch {}
   }
 
   gameOver() {
@@ -1784,6 +1860,12 @@ function startBossFight() {
   state.bossAnnouncementShowing = false;
   state.bossActive = true;
   state.bossDefeated = false;
+  // Guard against regressions: never go backwards in boss order
+  if (!Number.isFinite(state.__maxBossIndexReached)) state.__maxBossIndexReached = 0;
+  if (state.bossIndex < state.__maxBossIndexReached) {
+    console.warn('[GameScene] bossIndex regression detected; correcting', { current: state.bossIndex, max: state.__maxBossIndexReached });
+    state.bossIndex = state.__maxBossIndexReached;
+  }
 
   try { resources.audio?.bgm?.play?.().catch(()=>{}); } catch {}
 
@@ -1848,6 +1930,11 @@ function continueAfterBossDefeated(def) {
   state.bossIndex++;
   console.log("Advanced to bossIndex:", state.bossIndex);
 
+  // Track max progression to avoid accidental loops
+  if (!Number.isFinite(state.__maxBossIndexReached) || state.bossIndex > state.__maxBossIndexReached) {
+    state.__maxBossIndexReached = state.bossIndex;
+  }
+
   try { updateSectorFromBoss(); } catch (e) {} 
   
   if (state.bossIndex < bossDefinitions.length) {
@@ -1859,6 +1946,10 @@ function continueAfterBossDefeated(def) {
 
     // SIMPLIFIED: Fixed boss trigger count
     state.bossTriggerCount = 8; // Fixed trigger for all bosses
+    // If the next boss is the final (Kurtz), trigger immediately so the arena isn't empty
+    if (state.bossIndex === bossDefinitions.length - 1) {
+      state.bossTriggerCount = 0;
+    }
     console.log("Set boss trigger count to:", state.bossTriggerCount);
 
     // Reset boss flags

@@ -345,6 +345,13 @@ function handleCombo(now) {
     spawnAmmoBayAtBottom();
   } else if (state.comboCount === 4) {
     spawnParachutePickups(2);
+    // Enable Meatgrinder mode at Quad Kill
+    if (!state.meatgrinderMode) {
+      state.meatgrinderMode = true;
+      state.meatgrinderUntil = Date.now() + 10000; // 10s duration
+      state.tankSpriteKey = "tank3.png";
+      showCaption("MEATGRINDER!", 1000);
+    }
   }
 }
 

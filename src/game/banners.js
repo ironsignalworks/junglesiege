@@ -84,6 +84,8 @@ const _stackDim = Math.max(0.55, 1 - (i * 0.25)); // dim back banners
 }
 
 export function renderBanners(ctx, W, H) {
+  // Suppress banners during boss announcement/intro to avoid obstruction
+  try { if (state.bossAnnouncementShowing) return; } catch {}
   // only show first, or allow a light stack
   const active = [];
   if (state.bannerActive) active.push(state.bannerActive);

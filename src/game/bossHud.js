@@ -26,11 +26,11 @@ export function drawBossHealthBar(ctx) {
   const cw = state.canvas.width;
   const ch = state.canvas.height;
   
-  // POSITION BOSS HP BAR FURTHER DOWN FROM TOP BAR
+  // Position boss HP bar further up to free screen space
   const bw = Math.floor(cw * 0.8);
   const bh = 28; // Slightly taller for better beveling
   const bx = Math.floor((cw - bw) / 2);
-  const by = 120; // MOVED FURTHER DOWN (was 50, now 120)
+  const by = 70; // moved up (was 120)
 
   ctx.save();
   ctx.globalAlpha = 1;

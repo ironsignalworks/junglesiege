@@ -35,15 +35,13 @@ html, body{
   background:#000;
 }
 
-/* Shared 4:3 box geometry for all main screens:
-   centered via fixed+inset+margin:auto (no translate needed) */
+/* Fullscreen viewport & start screen */
 #game-viewport, #start-screen{
   position: fixed;
   inset: 0;
-  margin: auto;
-  width: min(100vw, calc(100vh * 4 / 3));
-  aspect-ratio: 4 / 3;
-  height: auto;              /* driven by aspect-ratio */
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
   background:#000;
   overflow:hidden;
   box-sizing: border-box;
@@ -70,16 +68,14 @@ html, body{
 #start-screen {
   position: fixed;
   inset: 0;
-  margin: auto;
-  width: min(100vw, calc(100vh * 4 / 3));
-  aspect-ratio: 4 / 3;
-  height: auto;
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
   display: grid;
   place-items: center;
 
-  border: 4px solid var(--hud-yellow);
   background-image: url('/assets/images/bg_jungle4.png');
-  background-size: contain;
+  background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
   box-sizing: border-box;
@@ -158,21 +154,16 @@ html, body{
   transform: translateY(-1px);
 }
 
-/* ---------- End / Restart Screen (hard-centered 4:3) ---------- */
+/* ---------- End / Restart Screen (fullscreen) ---------- */
 #end-screen,
 .end-screen,
 .restart-screen{
-  position: fixed;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);          /* robust vertical centering */
-  width: min(100vw, calc(100vh * 4 / 3));
-  height: calc(min(100vw, calc(100vh * 4 / 3)) * 3 / 4);
+  position: fixed; inset: 0;
+  width: 100vw; height: 100vh;
   display: none;                              /* show via .show */
   place-items: center;
   z-index: var(--z-overlay);
-  background: rgba(0,0,0,0.88);
-  border: 4px solid var(--hud-green);
+  background: rgba(0,0,0,0.95);
   box-sizing: border-box;
   overflow: hidden;                           /* stop content from pushing box */
 }
@@ -230,3 +221,18 @@ html, body{
 .end-screen.show ~ .hud,
 .restart-screen.show ~ #screen-hud,
 .restart-screen.show ~ .hud { display: none !important; }
+
+/* ---------- Rotate overlay for mobile portrait ---------- */
+#rotate-overlay{
+  position: fixed; inset: 0;
+  display: none; /* toggled via JS */
+  align-items: center; justify-content: center;
+  background: #000; color: #fff;
+  z-index: 99999;
+  text-align: center;
+  padding: 20px;
+  font-family: var(--font);
+}
+#rotate-overlay .message{
+  font-size: clamp(1rem, 4vw, 1.6rem);
+}

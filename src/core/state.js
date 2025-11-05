@@ -252,7 +252,8 @@ export function resetGame() {
   state.ammo = Number.isFinite(constants?.startingAmmo) ? constants.startingAmmo : 50;
   state.health = 100;
   state.score = 0;
-  state.round = 0;
+  state.round = 0;              // will be set to 1 on startGame()
+  state._hasStartedFirstRound = false; // ensure first nextRound does NOT increment to 2
   state.spawningInProgress = false;
 
   // Reset tank position
@@ -275,6 +276,11 @@ export function resetGame() {
     : 0;
 
   state.currentBgName = "bg_jungle1.png";
+
+  // Reset meatgrinder buff
+  state.meatgrinderMode = false;
+  state.meatgrinderUntil = 0;
+  state.tankSpriteKey = "tank.png";
   
   // Clear input state
   state.keys.clear();

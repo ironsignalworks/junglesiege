@@ -1,5 +1,5 @@
 // src/main.js
-import { state, updateCanvasSize } from "../core/state.js";
+import { state, updateCanvasSize, resetGame } from "../core/state.js";
 import { constants } from "./constants.js";
 
 // CRITICAL: Expose state globally for HUD updater
@@ -97,16 +97,11 @@ function ensureFrameHud() {
   let hud = document.getElementById('screen-hud');
   if (!hud) {
     const template = `<div id="screen-hud">
-      <div class="hud-top">
-        <div class="cluster left">
+      <div class="hud-bottom">
+        <div class="hud-seg roundsector">
           <div class="tag"><span class="lbl">ROUND</span><span id="hud-round" class="val">01</span></div>
           <div class="tag"><span class="lbl">SECTOR</span><span id="hud-sector" class="val">ALPHA</span></div>
         </div>
-        <div class="cluster right">
-          <div class="tag"><span class="lbl">OBJECTIVE</span><span id="hud-objective" class="val">SECURE PERIMETER</span></div>
-        </div>
-      </div>
-      <div class="hud-bottom">
         <div class="hud-seg hp">
           <span class="hud-label">HP</span>
           <div class="hp-bar">
@@ -131,13 +126,7 @@ function ensureFrameHud() {
           <span class="hud-value" id="hud-score">000000</span>
         </div>
       </div>
-      <div id="boss-hud" class="boss-hud" style="display: none;">
-        <div class="boss-name">
-          <span id="boss-name-text">BOSS NAME</span>
-        </div>
-        <div class="boss-hp-bar">
-          <div class="boss-hp-fill" id="boss-hp-fill" style="width: 100%;"></div>
-          <span class="boss-hp-text" id="boss-hp-text">1000/1000</span>
+          
         </div>
       </div>
     </div>`;
@@ -449,14 +438,23 @@ window.restartGame = () => {
     } catch (e) {
       console.warn("Error cleaning up dynamic effects:", e);
     }
+    // Return to START screen instead of restarting the level
+    try {
+      resetGame();
+    } catch {}
 
-    // Recreate a fresh scene and start
-    import("./GameScene.js").then(({ GameScene: GameSceneMod }) => {
-      const scene = new GameSceneMod();
-      const startScreen = document.getElementById("start-screen");
-      const canvas = document.getElementById("gameCanvas");
-      window.__startGame(scene, { startScreen, canvas });
-    });
+    // Hide canvas and HUD
+    const canvas = document.getElementById("gameCanvas");
+    if (canvas) canvas.style.display = "none";
+    const hud = document.getElementById("screen-hud");
+    if (hud) hud.style.display = "none";
+
+    // Show start screen and wait for user to press START
+    const startScreen = document.getElementById("start-screen");
+    if (startScreen) {
+      startScreen.style.display = "grid";
+      document.body.classList.remove("game-started");
+    }
   } catch (e) {
     console.error("[main] restartGame failed, fallback reload:", e);
     location.reload();
@@ -760,6 +758,9 @@ async function initGame() {
     
     startBtn.onclick = (e) => {
       e.preventDefault();
+      try { requestFullscreenDesktop(); } catch {}
+      try { lockLandscapeOnMobile(); } catch {}
+      ensureRotateOverlayHandlers();
       startGame(scene, { startScreen, canvas });
     };
   } else {
@@ -772,6 +773,40 @@ async function initGame() {
 window.addEventListener('end-screen-open', () => {
   try { state.gameStarted = false; } catch {}
 }, { once: true });
+
+// Attempt fullscreen on desktop
+function requestFullscreenDesktop() {
+  const isTouch = matchMedia('(pointer: coarse)').matches;
+  if (isTouch) return; // avoid odd behaviors on mobile
+  const root = document.documentElement;
+  if (root.requestFullscreen) root.requestFullscreen().catch(()=>{});
+}
+
+// Try to lock landscape on mobile (only works after user gesture)
+function lockLandscapeOnMobile() {
+  if ('orientation' in screen && typeof screen.orientation?.lock === 'function') {
+    screen.orientation.lock('landscape').catch(()=>{});
+  }
+}
+
+// Portrait overlay to hint rotation on mobile
+function ensureRotateOverlayHandlers() {
+  let ov = document.getElementById('rotate-overlay');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'rotate-overlay';
+    ov.innerHTML = '<div class="message">Rotate your device to landscape</div>';
+    document.body.appendChild(ov);
+  }
+  const update = () => {
+    const isTouch = matchMedia('(pointer: coarse)').matches;
+    const isPortrait = window.matchMedia('(orientation: portrait)').matches;
+    ov.style.display = (isTouch && isPortrait) ? 'flex' : 'none';
+  };
+  window.addEventListener('resize', update);
+  window.addEventListener('orientationchange', update);
+  update();
+}
 
 // Error handling
 initGame().catch(e => {
@@ -810,3 +845,4 @@ initGame().catch(e => {
   errorDiv.appendChild(errorContent);
   document.body.appendChild(errorDiv);
 });
+

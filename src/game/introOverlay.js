@@ -16,7 +16,7 @@ export function createIntroOverlay(config = {}) {
     // visual
     overlayAlpha: 0.45,
     panelPad: 16, // Reduced padding for smaller card
-    textLineH: 28, // Reduced line height
+    textLineH: 32, // Larger line height for bigger font
     maxLineWidthFrac: 0.65, // Slightly wider text for compact card
 
     // panel placement: smaller, more compact card
@@ -70,6 +70,7 @@ export function createIntroOverlay(config = {}) {
   let lineIndex = 0;
   let finishedCardAt = 0;
   let keyHandlerBound = null;
+  let buttonRect = null; // last computed continue button rect in canvas coords
 
   function loadImageByKey(key) {
     if (!key) return null;
@@ -128,8 +129,18 @@ export function createIntroOverlay(config = {}) {
     try { window.removeEventListener("click", onPointerAdvance); } catch {}
   }
 
-  function onPointerAdvance() {
+  function onPointerAdvance(ev) {
     if (!active) return;
+    // Require clicking the explicit continue button area
+    try {
+      if (buttonRect && ev && ev.clientX != null && ev.clientY != null && state?.canvas) {
+        const r = state.canvas.getBoundingClientRect();
+        const x = (ev.clientX - r.left) * (state.canvas.width / Math.max(1, r.width));
+        const y = (ev.clientY - r.top)  * (state.canvas.height / Math.max(1, r.height));
+        const inside = x >= buttonRect.x && x <= buttonRect.x + buttonRect.w && y >= buttonRect.y && y <= buttonRect.y + buttonRect.h;
+        if (!inside) return; // ignore clicks outside the button
+      }
+    } catch {}
     const now = performance.now?.() ?? Date.now();
     const line = lines[lineIndex] || "";
     if (typedChars < line.length) {
@@ -165,18 +176,34 @@ export function createIntroOverlay(config = {}) {
     if (blinkCycle === 0) return; // Hide during blink
     
     ctx.save();
-    ctx.textAlign = "right";
-    ctx.textBaseline = "bottom";
+    // Draw a chunky HUD-style 'CONTINUE' button inside the panel
+    const btnW = Math.min(180, Math.max(120, Math.floor(panelW * 0.35)));
+    const btnH = 28;
+    const btnX = panelX + panelW - btnW - 14;
+    const btnY = panelY + panelH - btnH - 12;
+    buttonRect = { x: btnX, y: btnY, w: btnW, h: btnH };
+
+    // Button plate
+    ctx.fillStyle = "#171717";
+    ctx.fillRect(btnX, btnY, btnW, btnH);
+    ctx.strokeStyle = "#ffc107";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(btnX + 1, btnY + 1, btnW - 2, btnH - 2);
+
+    // Bevel
+    ctx.fillStyle = "rgba(255,255,255,0.06)";
+    ctx.fillRect(btnX, btnY, btnW, 2);
+    ctx.fillStyle = "rgba(0,0,0,0.6)";
+    ctx.fillRect(btnX, btnY + btnH - 2, btnW, 2);
+
+    // Text
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
     ctx.font = "12px 'Press Start 2P', monospace";
-    
-    // Position at bottom-right inside the panel
-    const gateX = panelX + panelW - 12;
-    const gateY = panelY + panelH - 8;
-    
-    ctx.fillStyle = "#666666";
-    ctx.globalAlpha = 0.8;
-    
-    ctx.fillText("ESC SKIP / ENTER NEXT", gateX, gateY);
+    ctx.fillStyle = "#000";
+    ctx.fillText("CONTINUE", btnX + btnW / 2 + 1, btnY + btnH / 2 + 1);
+    ctx.fillStyle = "#ffc107";
+    ctx.fillText("CONTINUE", btnX + btnW / 2, btnY + btnH / 2);
     ctx.restore();
   }
 
@@ -259,7 +286,7 @@ export function createIntroOverlay(config = {}) {
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
     ctx.fillStyle = opts.theme.textColor;
-    ctx.font = "11px " + opts.theme.fontFamily; // Slightly smaller for compact card
+    ctx.font = "14px " + opts.theme.fontFamily; // Bigger type for intro cards
     
     // Enhanced text shadow for better contrast
     ctx.shadowColor = "rgba(199, 255, 199, 0.6)";
@@ -303,7 +330,7 @@ export function createIntroOverlay(config = {}) {
     }
 
     // Enhanced HUD-style caret with stronger glow
-    if (typedChars < line.length) {
+    if (typedChars > 0 && typedChars < line.length) {
       if (((now / 300) | 0) % 2 === 0) {
         const cw = ctx.measureText(linesOut[linesOut.length - 1] || "").width;
         ctx.fillStyle = opts.theme.titleColor; // Yellow caret like HUD
@@ -318,18 +345,7 @@ export function createIntroOverlay(config = {}) {
     // Draw blinking gate text inside the card
     drawInCardGateText(ctx, panelX, panelY, panelW, panelH, now);
 
-    // auto-advance after hold
-    if (typedChars >= line.length && finishedCardAt > 0) {
-      if (now - finishedCardAt >= opts.doneHold) {
-        if (lineIndex < lines.length - 1) {
-          lineIndex++;
-          resetTyping(now);
-        } else {
-          active = false;
-          detachInput();
-        }
-      }
-    }
+    // Remove auto-advance; require Enter key or clicking the CONTINUE button
   }
 
   return { start, isActive, skip, dispose, updateAndRender };

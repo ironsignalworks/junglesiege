@@ -76,6 +76,39 @@ export class Boss {
     return { dx, dy, dist, cx, cy, px, py };
   }
 
+  /** Maintain a preferred distance band; retreat if too close, approach if too far, otherwise strafe */
+  _maintainDistance(player, canvas, bottomBarHeight, opts = {}) {
+    const min = Number.isFinite(opts.min) ? opts.min : 220;
+    const max = Number.isFinite(opts.max) ? opts.max : 360;
+    const strafeSpeed = Number.isFinite(opts.strafeSpeed) ? opts.strafeSpeed : 2.0;
+
+    const cx = this.x + this.width / 2;
+    const cy = this.y + this.height / 2;
+    const px = player.x + player.width / 2;
+    const py = player.y + player.height / 2;
+    let dx = px - cx;
+    let dy = py - cy;
+    const dist = Math.max(1, Math.hypot(dx, dy));
+
+    if (dist < min) {
+      // too close: move away faster
+      this.x -= (dx / dist) * (this.speed * 1.8);
+      this.y -= (dy / dist) * (this.speed * 1.2);
+    } else if (dist > max) {
+      // too far: approach slowly
+      this.x += (dx / dist) * (this.speed * 0.9);
+      this.y += (dy / dist) * (this.speed * 0.7);
+    } else {
+      // in band: strafe horizontally to feel smarter
+      this.x += Math.sign(Math.sin(this._t * 0.05)) * strafeSpeed;
+    }
+
+    // Constrain to arena
+    this.x = Math.max(0, Math.min(canvas.width - this.width, this.x));
+    const maxY = canvas.height - bottomBarHeight - this.height - 50;
+    this.y = Math.max(10, Math.min(maxY, this.y));
+  }
+
   /** Aimed shot at player */
   _aimAtPlayer(player, projectiles, speed = 6) {
     const cx = this.x + this.width / 2;
@@ -98,7 +131,7 @@ export class Boss {
     if (!this.isAlive) return;
 
     // Basic movement
-    this._pursue(player, canvas, bottomBarHeight);
+    this._maintainDistance(player, canvas, bottomBarHeight);
 
     // Attack pattern
     const pattern = AttackPatterns[this.attackPattern] || AttackPatterns.default;
@@ -129,9 +162,7 @@ export class Boss {
 const AttackPatterns = {
   // Default: simple aimed shots
   default({ player, projectiles }) {
-    if (this._t % 90 === 0) {
-      this._aimAtPlayer(player, projectiles);
-    }
+    if (this._t % 75 === 0) this._aimAtPlayer(player, projectiles, 6);
   },
 
   // Mallet Melissa: rush + slam
@@ -365,7 +396,7 @@ const AttackPatterns = {
   },
 
   // Dr. Slime: spawn slugs
-  spawns_slugs({ projectiles }) {
+  spawns_slugs({ player, projectiles }) {
     const ratio = this.health / this.maxHealth;
     const s = this.state;
     
@@ -390,7 +421,7 @@ const AttackPatterns = {
     
     // Regular aimed shots
     if (this._t % 90 === 0) {
-      this._aimAtPlayer(player, projectiles);
+      this._aimAtPlayer(player, projectiles, 6);
     }
   },
 
@@ -431,9 +462,15 @@ const AttackPatterns = {
     
     // Flee when low health
     if (this.health / this.maxHealth <= 0.25) {
-      const k = this._pursue(player, canvas, bottomBarHeight);
-      this.x -= (k.dx / Math.max(1, k.dist)) * (this.speed * 1.5);
-      this.y -= (k.dy / Math.max(1, k.dist)) * (this.speed * 1.5);
+      // stronger flee when low
+      const cx = this.x + this.width / 2, cy = this.y + this.height / 2;
+      const px = player.x + player.width / 2, py = player.y + player.height / 2;
+      const dx = px - cx, dy = py - cy; const d = Math.max(1, Math.hypot(dx, dy));
+      this.x -= (dx / d) * (this.speed * 1.8);
+      this.y -= (dy / d) * (this.speed * 1.5);
+    } else {
+      // otherwise keep a mid-range distance
+      this._maintainDistance(player, canvas, bottomBarHeight, { min: 260, max: 420, strafeSpeed: 2.5 });
     }
   },
 
@@ -450,6 +487,7 @@ const AttackPatterns = {
     s.timer++;
     
     if (s.phase === 0) { // Multi-shot phase
+      this._maintainDistance(player, canvas, bottomBarHeight, { min: 280, max: 460, strafeSpeed: 2.8 });
       if (this._t % 25 === 0) {
         const cx = this.x + this.width / 2;
         const cy = this.y + this.height / 2;
@@ -476,6 +514,7 @@ const AttackPatterns = {
         s.timer = 0; 
       }
     } else if (s.phase === 1) { // Sweep phase
+      this._maintainDistance(player, canvas, bottomBarHeight, { min: 240, max: 420, strafeSpeed: 3.0 });
       if (this._t % 40 === 0) {
         const lanes = 3 + Math.floor(Math.random() * 2);
         for (let i = 0; i < lanes; i++) {
@@ -494,6 +533,7 @@ const AttackPatterns = {
         s.timer = 0; 
       }
     } else if (s.phase === 2) { // Final phase
+      this._maintainDistance(player, canvas, bottomBarHeight, { min: 220, max: 400, strafeSpeed: 3.2 });
       if (this._t % 50 === 0) {
         this._aimAtPlayer(player, projectiles, 8);
       }

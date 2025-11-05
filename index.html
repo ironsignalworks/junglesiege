@@ -36,29 +36,9 @@ content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no,
     <!-- Canvas will be created here by JavaScript -->
   </div>
 
-  <!-- HUD overlay with boss mode support -->
+  <!-- HUD overlay (single bottom bar) -->
   <div id="screen-hud" class="hidden" aria-hidden="true">
-    <!-- Top HUD Bar - Game Info (Hidden during boss fights) -->
-    <div class="hud-top">
-      <div class="cluster left">
-        <div class="tag">
-          <span class="lbl">ROUND</span>
-          <span id="hud-round" class="val">01</span>
-        </div>
-        <div class="tag">
-          <span class="lbl">SECTOR</span>
-          <span id="hud-sector" class="val">ALPHA</span>
-        </div>
-      </div>
-      <div class="cluster right">
-        <div class="tag">
-          <span class="lbl">OBJECTIVE</span>
-          <span id="hud-objective" class="val">SECURE PERIMETER</span>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Boss HP Bar (Replaces top HUD during boss fights) -->
+    <!-- Boss HP Bar (visible during boss fights) -->
     <div class="boss-hp-container">
       <div class="boss-name">
         <div class="boss-name-text" id="boss-name-text">BOSS NAME</div>
@@ -72,8 +52,12 @@ content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no,
       </div>
     </div>
     
-    <!-- Bottom HUD Bar - Player Stats (Always visible) -->
+    <!-- Bottom HUD Bar - All Stats -->
     <div class="hud-bottom">
+      <div class="hud-seg roundsector">
+        <div class="tag"><span class="lbl">ROUND</span><span id="hud-round" class="val">01</span></div>
+        <div class="tag"><span class="lbl">SECTOR</span><span id="hud-sector" class="val">ALPHA</span></div>
+      </div>
       <div class="hud-seg hp">
         <span class="hud-label">HP</span>
         <div class="hp-bar">
