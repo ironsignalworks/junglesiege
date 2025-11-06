@@ -255,6 +255,12 @@ export function resetGame() {
   state.round = 0;              // will be set to 1 on startGame()
   state._hasStartedFirstRound = false; // ensure first nextRound does NOT increment to 2
   state.spawningInProgress = false;
+  // Combo & banners
+  state.comboCount = 0;
+  state.comboDisplay = "";
+  state.lastKillTime = 0;
+  state.bannerQueue = [];
+  state.bannerActive = null;
 
   // Reset tank position
   if (tank) {
@@ -274,6 +280,7 @@ export function resetGame() {
   state.bossTriggerCount = constants.bossTriggerThresholds
     ? constants.bossTriggerThresholds[0]
     : 0;
+  state.__maxBossIndexReached = 0;
 
   state.currentBgName = "bg_jungle1.png";
 
@@ -281,6 +288,9 @@ export function resetGame() {
   state.meatgrinderMode = false;
   state.meatgrinderUntil = 0;
   state.tankSpriteKey = "tank.png";
+  state.__ended = false;
+  state.overlayActive = false;
+  state.inputLocked = false;
   
   // Clear input state
   state.keys.clear();

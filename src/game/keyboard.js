@@ -44,7 +44,11 @@ function onDown(e) {
     state.keyDown = true;
     console.log("[keyboard] Set keyDown = true");
   }
-  if (e.key === " " || e.key === "Spacebar" || e.code === "Space") firePlayerBullet();
+  if (e.key === " " || e.key === "Spacebar" || e.code === "Space") {
+    // Suspend space-fire during overlays or when input locked
+    if (state.inputLocked || state.bossAnnouncementShowing || state.overlayActive) return;
+    firePlayerBullet();
+  }
 }
 
 function onUp(e) {

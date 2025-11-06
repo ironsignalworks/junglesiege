@@ -83,6 +83,37 @@ html, body{
   z-index: var(--z-overlay);
 }
 
+/* ----- Start screen footer (Iron Signal Works) ----- */
+.siteFooter{
+  position:absolute; left:50%; bottom:12px; transform:translateX(-50%);
+  z-index: calc(var(--z-overlay) + 1);
+  pointer-events:auto;
+}
+.siteFooter a{
+  display:flex; align-items:center; gap:10px;
+  text-decoration:none; color:var(--hud-green);
+  font-family: var(--font);
+  background: rgba(0,0,0,0.45);
+  padding:6px 10px; border:1px solid rgba(255,193,7,0.25);
+  box-shadow: 0 2px 10px rgba(0,0,0,.35);
+}
+.siteFooter img{
+  width:28px; height:auto; flex:0 0 auto; image-rendering: pixelated;
+}
+.siteFooter .brand{
+  font-size:10px; font-weight:900; letter-spacing:.12em; line-height:1;
+}
+.siteFooter .tag{
+  display:block; font-size:8px; opacity:.85; letter-spacing:.08em; line-height:1.2;
+}
+
+@media (max-width: 520px){
+  .siteFooter a{ gap:8px; padding:5px 8px; }
+  .siteFooter img{ width:22px; }
+  .siteFooter .brand{ font-size:9px; }
+  .siteFooter .tag{ font-size:7px; }
+}
+
 /* top ribbon text */
 #start-screen .start-top {
   position: absolute;
