@@ -138,12 +138,40 @@ export const resources = {
   },
 
   audio: {
-    "bgm.wav": "assets/audio/bgm.wav",
-    "jungle_loop.mp3": "assets/audio/jungle_loop.mp3",
+    // Music / loops
+    "bgm.mp3": "assets/audio/bgm.mp3",                 // placeholder or alternate BGM
+    "bgm.wav": "assets/audio/bgm.wav",                 // existing instructional bgm
+    "jungle_loop.mp3": "assets/audio/jungle_loop.mp3", // main loop
     "gameover.mp3": "assets/audio/gameover.mp3",
+
+    // Core SFX
     "shot.mp3": "assets/audio/shot.mp3",
     "explosion.mp3": "assets/audio/explosion.mp3",
-    "fx_reload.wav": "assets/audio/fx_reload.wav",
+    "reload.mp3": "assets/audio/reload.mp3",          // placeholder (mp3) for reload
+    "fx_reload.wav": "assets/audio/fx_reload.wav",     // existing wav fallback
+
+    // UI SFX (placeholders)
+    "ui_start.mp3": "assets/audio/ui_start.mp3",
+    "ui_confirm.mp3": "assets/audio/ui_confirm.mp3",
+    "ui_cancel.mp3": "assets/audio/ui_cancel.mp3",
+
+    // Gameplay SFX (placeholders)
+    "pickup.mp3": "assets/audio/pickup.mp3",
+    "hurt.mp3": "assets/audio/hurt.mp3",
+    "intel.mp3": "assets/audio/intel.mp3",
+    "shield.mp3": "assets/audio/shield.mp3",
+    "napalm.mp3": "assets/audio/napalm.mp3",
+    "ammobay.mp3": "assets/audio/ammobay.mp3",
+    "zombie_death.mp3": "assets/audio/zombie_death.mp3",
+    "slug_death.mp3": "assets/audio/slug_death.mp3",
+    "combo.mp3": "assets/audio/combo.mp3",
+
+    // Boss SFX (placeholders)
+    "boss_intro.mp3": "assets/audio/boss_intro.mp3",
+    "boss_spawn.mp3": "assets/audio/boss_spawn.mp3",
+    "boss_hit.mp3": "assets/audio/boss_hit.mp3",
+    "boss_death.mp3": "assets/audio/boss_death.mp3",
+    "victory_fanfare.mp3": "assets/audio/victory_fanfare.mp3",
   },
 };
 

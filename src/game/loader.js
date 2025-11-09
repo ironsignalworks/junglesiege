@@ -194,13 +194,45 @@ export async function loadAllResources(defs = bossDefinitions) {
   const rejected = results.filter(r => r.status === "rejected").length;
   console.log(`[loader] images done; total:${results.length} rejected:${rejected}`);
 
-  // 5) Audio (non-blocking)
-  const baseAudio = "assets/audio/";
-  resources.audio.bgm = resources.audio.bgm || createAudio(baseAudio + "jungle_loop.mp3");
-  resources.audio.instructionsBgm = resources.audio.instructionsBgm || createAudio(baseAudio + "bgm.wav");
-  resources.audio.gameOverMusic = resources.audio.gameOverMusic || createAudio(baseAudio + "gameover.mp3");
-  resources.audio.fxShot = resources.audio.fxShot || createAudio(baseAudio + "shot.mp3");
-  resources.audio.fxExplosion = resources.audio.fxExplosion || createAudio(baseAudio + "explosion.mp3");
+  // 5) Audio (non-blocking) — wrap any string URLs in <audio> elements
+  try {
+    const entries = Object.entries(resources.audio || {});
+    for (const [key, val] of entries) {
+      if (val instanceof HTMLAudioElement) continue;
+      if (typeof val === "string") {
+        resources.audio[key] = createAudio(val);
+      }
+    }
+
+    // Provide convenient aliases used by game code
+    const A = resources.audio;
+    A.bgm = A.bgm || A["jungle_loop.mp3"] || createAudio("assets/audio/jungle_loop.mp3");
+    A.instructionsBgm = A.instructionsBgm || A["bgm.wav"] || createAudio("assets/audio/bgm.wav");
+    A.gameOverMusic = A.gameOverMusic || A["gameover.mp3"] || createAudio("assets/audio/gameover.mp3");
+    A.fxShot = A.fxShot || A["shot.mp3"] || createAudio("assets/audio/shot.mp3");
+    A.fxExplosion = A.fxExplosion || A["explosion.mp3"] || createAudio("assets/audio/explosion.mp3");
+    A.fxReload = A.fxReload || A["reload.mp3"] || A["fx_reload.wav"] || createAudio("assets/audio/reload.mp3");
+    A.fxPickup = A.fxPickup || A["pickup.mp3"] || createAudio("assets/audio/pickup.mp3");
+    A.fxHurt = A.fxHurt || A["hurt.mp3"] || createAudio("assets/audio/hurt.mp3");
+    A.fxIntel = A.fxIntel || A["intel.mp3"] || createAudio("assets/audio/intel.mp3");
+    A.fxShield = A.fxShield || A["shield.mp3"] || createAudio("assets/audio/shield.mp3");
+    A.fxNapalm = A.fxNapalm || A["napalm.mp3"] || A["explosion.mp3"] || createAudio("assets/audio/napalm.mp3");
+    A.ammobay = A.ammobay || A["ammobay.mp3"] || createAudio("assets/audio/ammobay.mp3");
+    A.fxZombieDeath = A.fxZombieDeath || A["zombie_death.mp3"] || A["explosion.mp3"] || createAudio("assets/audio/zombie_death.mp3");
+    A.fxSlugDeath = A.fxSlugDeath || A["slug_death.mp3"] || A["explosion.mp3"] || createAudio("assets/audio/slug_death.mp3");
+    A.fxCombo = A.fxCombo || A["combo.mp3"] || createAudio("assets/audio/combo.mp3");
+    A.fxBossIntro = A.fxBossIntro || A["boss_intro.mp3"] || createAudio("assets/audio/boss_intro.mp3");
+    A.fxBossSpawn = A.fxBossSpawn || A["boss_spawn.mp3"] || createAudio("assets/audio/boss_spawn.mp3");
+    A.fxBossHit = A.fxBossHit || A["boss_hit.mp3"] || createAudio("assets/audio/boss_hit.mp3");
+    A.fxBossDeath = A.fxBossDeath || A["boss_death.mp3"] || A["explosion.mp3"] || createAudio("assets/audio/boss_death.mp3");
+    A.fxVictoryFanfare = A.fxVictoryFanfare || A["victory_fanfare.mp3"] || createAudio("assets/audio/victory_fanfare.mp3");
+    A.fxUiStart = A.fxUiStart || A["ui_start.mp3"] || createAudio("assets/audio/ui_start.mp3");
+    A.fxUiConfirm = A.fxUiConfirm || A["ui_confirm.mp3"] || createAudio("assets/audio/ui_confirm.mp3");
+    A.fxUiCancel = A.fxUiCancel || A["ui_cancel.mp3"] || createAudio("assets/audio/ui_cancel.mp3");
+  } catch (e) {
+    console.warn("[loader] audio init failed:", e);
+  }
 
   console.log("[loader] done");
 }
+

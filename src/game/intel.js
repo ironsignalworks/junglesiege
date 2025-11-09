@@ -1,5 +1,6 @@
+import { resources } from './resources.js';
 // src/systems/intel.js
-import { state } from "../core/state.js";
+import { state, playSound } from "../core/state.js";
 import { roachEvent } from "./roach.js";
 
 // Canonical keys used in HUD (5 to gate finale)
@@ -15,6 +16,7 @@ export function grantIntel(key) {
   if (state.intel.found[key]) return false;   // already have it
   state.intel.found[key] = true;
   state.intel.count = Object.keys(state.intel.found).length;
+  try { if (resources?.audio?.fxIntel) playSound(resources.audio.fxIntel); } catch {}
   roachEvent?.("INTEL_GAINED", { count: state.intel.count, total: 5 });
   return true;
 }
@@ -22,3 +24,6 @@ export function grantIntel(key) {
 export function hasAllIntel() {
   return !!(state.intel && state.intel.count >= 5);
 }
+
+
+

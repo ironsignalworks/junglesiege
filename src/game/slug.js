@@ -87,6 +87,7 @@ export function updateAndRenderSlugs(ctx, now) {
           const ey = s.y + (s.height || 16) / 2;
           // use explicit pixel sizing so its consistently bigger
           spawnFxExplosion("flesh", { x: ex, y: ey, sizePx: 56, shake: 6, frameMs: 60 });
+          try { const snd = resources?.audio?.fxSlugDeath || resources?.audio?.fxExplosion; if (snd && playSound) playSound(snd); } catch {}
 
         // remove slug and award
           state.slugs.splice(i, 1);
@@ -109,7 +110,7 @@ export function updateAndRenderSlugs(ctx, now) {
 
         state.slugs.splice(i, 1);
         try {
-          const snd = resources?.audio?.fxPickup || resources?.audio?.fxExplosion;
+          const snd = resources?.audio?.fxSlugDeath || resources?.audio?.fxShield || resources?.audio?.fxExplosion;
           if (snd && playSound) playSound(snd);
         } catch {}
         state.flashWhite = Math.max(state.flashWhite || 0, 0.18);

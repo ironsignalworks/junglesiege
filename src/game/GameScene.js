@@ -1387,6 +1387,7 @@ export class GameScene {
           state.boss.health--;
           state.bullets.splice(i, 1);
           bumpBossHitStreak(performance.now());
+          try { if (!state._lastBossHitSfx || performance.now() - state._lastBossHitSfx > 140) { if (resources.audio?.fxBossHit) playSound(resources.audio.fxBossHit); state._lastBossHitSfx = performance.now(); } } catch {}
           console.log("Boss hit! Health:", state.boss.health);
           if (state.boss.health <= 0) break;
         }
@@ -1402,6 +1403,7 @@ export class GameScene {
         state.bossActive = false;
         state.bossDefeated = true;
 
+        try { if (resources.audio?.fxBossDeath) playSound(resources.audio.fxBossDeath); } catch {}
         // Continue to next boss
         continueAfterBossDefeated(def);
         return;
@@ -2072,3 +2074,7 @@ window.focusCanvas = function() {
     console.log("No canvas found");
   }
 };
+
+
+
+

@@ -3,6 +3,14 @@ import { state } from "../core/state.js";
 import { resources } from "./resources.js";
 
 export function showEndScreen(kind = "fail", opts = {}) {
+  try {
+    if (String(kind).toLowerCase() === 'victory') {
+      resources.audio?.fxVictoryFanfare && resources.audio.fxVictoryFanfare.play?.().catch(()=>{});
+    } else {
+      resources.audio?.gameOverMusic && resources.audio.gameOverMusic.play?.().catch(()=>{});
+    }
+  } catch {}
+
   if (document.getElementById('end-screen')) return;
   try { window.dispatchEvent(new Event('end-screen-open')); } catch {}
   for (const id of ["how-to-play","htp","overlay"]) {
@@ -63,8 +71,8 @@ export function showEndScreen(kind = "fail", opts = {}) {
     left: "0",
     width: "100%",
     height: "100%",
-    objectFit: "cover", // Changed from "contain" to "cover" to fill viewport
-    objectPosition: "center center", // Center the image when cropped
+    objectFit: "cover", // fill viewport
+    objectPosition: "center center",
     pointerEvents: "none",
     filter: isVictory ? "saturate(1.1) contrast(1.05)" : "grayscale(0.1) brightness(0.8)",
     zIndex: "1",
@@ -153,19 +161,16 @@ export function showEndScreen(kind = "fail", opts = {}) {
   });
   overlay.appendChild(btn);
 
-  // Remove the layoutEndFrame function - not needed with CSS positioning
   state.gameStarted = false;
 
   const restart = () => {
     try { document.removeEventListener('keydown', keyHandler, true); } catch{};
     try { window.dispatchEvent(new Event('end-screen-cleanup')); } catch{};
 
-    // show canvas immediately to avoid a black flash
     const cv = document.getElementById("gameCanvas") || document.querySelector("canvas");
     if (cv) cv.style.display = "block";
     screen.style.display = "none";
 
-    // Preferred: in-app restart if your boot exposes it
     try {
       if (typeof window.restartGame === "function") {
         window.restartGame();
@@ -175,10 +180,10 @@ export function showEndScreen(kind = "fail", opts = {}) {
       console.warn("[screens] restartGame hook failed, reloading:", e);
     }
 
-    // Guaranteed fallback
     location.reload();
   };
 
-  // Gate restart strictly behind explicit click; ignore keyboard to avoid accidental restarts
+  // Gate restart behind explicit click
   btn.onclick = restart;
 }
+

@@ -1,0 +1,29 @@
+Music
+jungle_loop.mp3 (exists): main loop
+bgm.mp3 (placeholder): optional alternate bgm
+bgm.wav (exists): instructional bgm (kept as fallback)
+gameover.mp3 (exists): fail screen music
+victory_fanfare.mp3 (placeholder): victory cue
+UI
+ui_start.mp3 (placeholder): start button
+ui_confirm.mp3 (placeholder)
+ui_cancel.mp3 (placeholder)
+Core gameplay
+shot.mp3 (exists): player fire
+explosion.mp3 (exists): explosions
+reload.mp3 (placeholder), fx_reload.wav (exists): reload fallback
+pickup.mp3 (placeholder): pickups (ammo/medkit/intel fallback)
+hurt.mp3 (placeholder): player damage
+intel.mp3 (placeholder): intel item collected
+shield.mp3 (placeholder): shield pop/activation
+napalm.mp3 (placeholder): napalm activation (falls back to explosion if missing)
+combo.mp3 (placeholder): combo/banner cue
+Boss
+boss_intro.mp3 (placeholder): boss announcement card appears
+boss_spawn.mp3 (placeholder): boss enters arena
+boss_hit.mp3 (placeholder): boss takes damage (rate-limited)
+boss_death.mp3 (placeholder): boss defeated
+Enemies and specials
+ammobay.mp3 (placeholder): ammo bay drop
+zombie_death.mp3 (placeholder): zombie death (fallback to explosion)
+slug_death.mp3 (placeholder): slug death (fallback to explosion)

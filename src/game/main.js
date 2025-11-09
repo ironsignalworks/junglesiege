@@ -1,5 +1,5 @@
 // src/main.js
-import { state, updateCanvasSize, resetGame } from "../core/state.js";
+import { state, updateCanvasSize, resetGame, playSound } from "../core/state.js";
 import { constants } from "./constants.js";
 
 // CRITICAL: Expose state globally for HUD updater
@@ -175,29 +175,7 @@ function ensureFrameHud() {
 }
 
 // Create end screen
-function createEndScreen(type = 'victory') {
-  const endScreen = document.createElement('div');
-  endScreen.id = 'end-screen';
-  endScreen.className = 'screen-container-4x3';
-  
-  const title = type === 'victory' ? 'VICTORY!' : 'GAME OVER';
-  const titleColor = type === 'victory' ? '#c7ffc7' : '#ff4d4d';
-  const borderColor = type === 'victory' ? '#c7ffc7' : '#ff6b6b';
-  
-  endScreen.style.border = `2px solid ${borderColor}`;
-  endScreen.style.boxShadow = `0 0 25px ${borderColor}33`;
-  
-  endScreen.innerHTML = `
-    <h1 style="color:${titleColor};font-size:clamp(2rem,6vw,4rem);margin:1rem auto;text-transform:uppercase;text-shadow:0 0 15px ${titleColor};">${title}</h1>
-    <div id="end-stats" style="margin:1rem auto;">
-      <div style="color:#ffc107;font-size:clamp(1rem,3vw,2rem);margin:0.5rem auto;">FINAL SCORE: <span id="final-score">0</span></div>
-      <div style="color:#ffc107;font-size:clamp(0.8rem,2.5vw,1.5rem);margin:0.5rem auto;opacity:0.9;">BEST: <span id="best-score">0</span></div>
-    </div>
-    <button id="restart-button">PLAY AGAIN</button>
-  `;
-  
-  return endScreen;
-}
+// (removed unused createEndScreen; end screen handled by screens.js)
 
 // Simple game start
 function startGame(scene, { startScreen, canvas } = {}) {
@@ -487,21 +465,7 @@ const computeCritical = (() => {
   };
 })();
 
-function showCriticalOverlay(critMissing) {
-  const overlay = document.createElement("div");
-  overlay.style.cssText = "position:fixed;inset:0;background:#111;color:#f66;padding:24px;font:14px/1.4 monospace;overflow:auto;z-index:99999;";
-  
-  const missingAssets = [
-    ...critMissing.images.map(k => `images/${k}`),
-    ...critMissing.audio.map(k => `audio/${k}`)
-  ];
-  
-  overlay.innerHTML = `<h2>Missing critical assets</h2>
-    <p>Fix the files below (path is relative to site root):</p>
-    <pre>${missingAssets.join("\n")}</pre>`;
-  
-  document.body.appendChild(overlay);
-}
+// (removed unused showCriticalOverlay)
 
 // Preflight check
 async function runPreflight() {
@@ -537,120 +501,22 @@ async function runPreflight() {
 }
 
 // Debug function
-window.debugPositioning = function() {
-  console.log("=== POSITIONING DEBUG ===");
-  
-  const elements = ['start-screen', 'game-viewport', 'stage', 'gameCanvas', 'screen-hud'];
-  elements.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-      const rect = el.getBoundingClientRect();
-      const computed = window.getComputedStyle(el);
-      console.log(`${id}:`, {
-        position: computed.position,
-        left: computed.left,
-        top: computed.top,
-        transform: computed.transform,
-        width: rect.width,
-        height: rect.height,
-        aspectRatio: (rect.width / rect.height).toFixed(3),
-        rect: rect
-      });
-    }
-  });
-  
-  console.log("Viewport:", {
-    width: window.innerWidth,
-    height: window.innerHeight,
-    aspectRatio: (window.innerWidth / window.innerHeight).toFixed(3)
-  });
-  
-  const expected4x3Width = Math.min(window.innerWidth, window.innerHeight * 4/3);
-  const expected4x3Height = expected4x3Width * 3/4;
-  console.log("Expected 4:3:", {
-    width: expected4x3Width,
-    height: expected4x3Height,
-    aspectRatio: (expected4x3Width / expected4x3Height).toFixed(3)
-  });
-};
+// (removed verbose debugPositioning util)
 
 // Debug HUD state
-window.debugHUD = function() {
-  console.log("=== HUD DEBUG ===");
-  console.log("Game State:", {
-    health: state.health,
-    ammo: state.ammo,
-    score: state.score,
-    round: state.round,
-    sector: state.sector,
-    gameStarted: state.gameStarted
-  });
-  
-  const hudElements = ['hud-round', 'hud-sector', 'hud-score', 'hud-hp-fill', 'hud-health-value', 'hud-ammo-value', 'hud-ammo-pips'];
-  hudElements.forEach(id => {
-    const el = document.getElementById(id);
-    console.log(`${id}:`, el ? {
-      textContent: el.textContent,
-      style: el.style.cssText,
-      visible: el.offsetParent !== null,
-      computed: window.getComputedStyle(el).display
-    } : 'NOT FOUND');
-  });
-};
+// (removed verbose debugHUD util)
 
 // Debug function to manually test HUD updates
-window.testHUD = function() {
-  console.log("Testing HUD updates...");
-  
-  // Manually update state
-  if (window.state) {
-    window.state.health = 75;
-    window.state.ammo = 25;
-    window.state.score = 1250;
-    window.state.round = 3;
-    window.state.sector = 'BETA';
-    
-    console.log("Updated state:", {
-      health: window.state.health,
-      ammo: window.state.ammo,
-      score: window.state.score,
-      round: window.state.round,
-      sector: window.state.sector
-    });
-  }
-};
+// (removed testHUD helper)
 
 // Force show HUD function
-window.forceShowHUD = function() {
-  const hudEl = document.getElementById('screen-hud');
-  if (hudEl) {
-    hudEl.classList.remove('hidden');
-    hudEl.removeAttribute('aria-hidden');
-    hudEl.style.display = 'block';
-    hudEl.style.opacity = '1';
-    hudEl.style.visibility = 'visible';
-    hudEl.style.zIndex = '1000';
-    console.log("HUD forced visible");
-    
-    // Also force game state
-    if (window.state) {
-      window.state.gameStarted = true;
-      console.log("Game state forced to started");
-    }
-  } else {
-    console.log("HUD element not found");
-  }
-};
+// (removed forceShowHUD helper)
 
 // Game initialization
 async function initGame() {
   console.log("[main] initGame()");
   
-  // Debug positioning after DOM is ready
-  setTimeout(() => {
-    console.log("Initial positioning:");
-    window.debugPositioning();
-  }, 500);
+  // (removed debug positioning log)
   
   const [frameHud] = await Promise.all([
     Promise.resolve(ensureFrameHud()),
@@ -758,6 +624,7 @@ async function initGame() {
     
     startBtn.onclick = (e) => {
       e.preventDefault();
+      try { if (resources?.audio?.fxUiStart) playSound(resources.audio.fxUiStart); } catch {}
       try { requestFullscreenDesktop(); } catch {}
       try { lockLandscapeOnMobile(); } catch {}
       ensureRotateOverlayHandlers();
@@ -845,4 +712,5 @@ initGame().catch(e => {
   errorDiv.appendChild(errorContent);
   document.body.appendChild(errorDiv);
 });
+
 
