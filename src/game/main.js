@@ -1,5 +1,5 @@
 // src/main.js
-import { state, updateCanvasSize, resetGame, playSound } from "../core/state.js";
+import { state, updateCanvasSize, resetGame, playSound, stopAllAudio } from "../core/state.js";
 import { constants } from "./constants.js";
 
 // CRITICAL: Expose state globally for HUD updater
@@ -191,6 +191,9 @@ function startGame(scene, { startScreen, canvas } = {}) {
   if (existingCanvas) {
     existingCanvas.remove();
   }
+
+  // Hard audio reset before a new run starts.
+  try { stopAllAudio(resources); } catch {}
   
   // Create canvas
   const stage = document.getElementById('stage');
@@ -406,6 +409,8 @@ function startGame(scene, { startScreen, canvas } = {}) {
 window.__startGame = startGame;
 window.restartGame = () => {
   try {
+    try { stopAllAudio(resources); } catch {}
+
     // Clear overlays
     const end = document.getElementById("end-screen");
     if (end) end.remove();

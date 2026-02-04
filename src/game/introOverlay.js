@@ -16,7 +16,7 @@ export function createIntroOverlay(config = {}) {
     // visual
     overlayAlpha: 0.45,
     panelPad: 16, // Reduced padding for smaller card
-    textLineH: 32, // Larger line height for bigger font
+    textLineH: 40, // Larger line height for bigger font
     maxLineWidthFrac: 0.65, // Slightly wider text for compact card
 
     // panel placement: smaller, more compact card
@@ -288,7 +288,7 @@ export function createIntroOverlay(config = {}) {
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
     ctx.fillStyle = opts.theme.textColor;
-    ctx.font = "14px " + opts.theme.fontFamily; // Bigger type for intro cards
+    ctx.font = "18px " + opts.theme.fontFamily; // Bigger type for intro cards
     
     // Enhanced text shadow for better contrast
     ctx.shadowColor = "rgba(199, 255, 199, 0.6)";
@@ -371,3 +371,4 @@ function deepMerge(base, ext) {
 }
 
 export default createIntroOverlay;
+

@@ -300,6 +300,9 @@ export function resetGame() {
   state.keyDown = false;
   state.pointerDown = false;
 
+  // Kill any active pooled SFX so they cannot bleed into the next run.
+  stopAllAudio();
+
   // Reset metrics
   state.metrics.drawCalls = 0;
   state.metrics.entityCount = 0;
@@ -337,6 +340,32 @@ export function playSound(sound) {
     try {
       sound.currentTime = 0;
       sound.play().catch(() => {});
+    } catch {}
+  }
+}
+
+export function stopAllAudio(resourcesRef = null) {
+  // Stop pooled audio clones created by playSound().
+  try {
+    for (const pool of audioPool.values()) {
+      for (const audio of pool) {
+        try {
+          audio.pause?.();
+          audio.currentTime = 0;
+        } catch {}
+      }
+    }
+    audioPool.clear();
+  } catch {}
+
+  // Stop all declared game audio assets (bgm, game-over, ui, sfx, etc).
+  const audioMap = resourcesRef?.audio;
+  if (!audioMap || typeof audioMap !== "object") return;
+  for (const audio of Object.values(audioMap)) {
+    if (!audio || typeof audio !== "object") continue;
+    try {
+      audio.pause?.();
+      audio.currentTime = 0;
     } catch {}
   }
 }

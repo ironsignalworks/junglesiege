@@ -190,9 +190,8 @@ function normalizeEnemyKinematics(eb) {
 // Heuristic: treat a projectile as "boss" if any of these flags are set.
 // (Keeps zombies bullets unchanged while letting boss ones scale up.)
 function isBossOwned(eb) {
-  return !!(eb.isBoss || eb.fromBoss || eb.owner === "boss");
+  return !!(eb.isBoss || eb.fromBoss || eb.owner === 'boss' || eb.from === 'boss');
 }
-
 export function updateEnemyBullets(ctx, onHitTank) {
   if (!isCanvasCtx(ctx)) {
     onHitTank = typeof arguments[1] === "function" ? arguments[1] : onHitTank;
@@ -240,7 +239,19 @@ export function updateEnemyBullets(ctx, onHitTank) {
     const drawX = Math.round(eb.x - (w - baseW) / 2);
     const drawY = Math.round(eb.y - (h - baseH) / 2);
 
-    drawSpriteOrRect(ctx, img, drawX, drawY, w, h, "#ffc107");
+    if (img && (isBossOwned(eb) || eb.rotate === true)) {
+      eb.spin = Number.isFinite(eb.spin) ? eb.spin : 0.12;
+      eb.rot = (eb.rot || 0) + eb.spin;
+      const cx = drawX + w / 2;
+      const cy = drawY + h / 2;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(eb.rot || 0);
+      ctx.drawImage(img, -w / 2, -h / 2, w, h);
+      ctx.restore();
+    } else {
+      drawSpriteOrRect(ctx, img, drawX, drawY, w, h, "#ffc107");
+    }
 
     // Use the SCALED hitbox for collision callback
     const hitbox = { ...eb, x: drawX, y: drawY, width: w, height: h };
@@ -258,3 +269,8 @@ export function updateEnemyBullets(ctx, onHitTank) {
     }
   }
 }
+
+
+
+
+

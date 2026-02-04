@@ -45,7 +45,7 @@ export class Boss {
       type: this.projectileType,
       from: "boss",
     };
-    const out = Object.assign(base, p || {});
+    const out = Object.assign(base, p || {}); out.owner = 'boss'; out.fromBoss = true;
     
     // ENSURE ALL PROJECTILE SIZES ARE DOUBLED
     if (out.width <= 64) out.width = Math.max(out.width * 2, 48); // Minimum 48px, double existing
@@ -72,6 +72,7 @@ export class Boss {
       this.x = Math.max(0, Math.min(canvas.width - this.width, this.x));
       const maxY = canvas.height - bottomBarHeight - this.height - 50;
       this.y = Math.max(10, Math.min(maxY, this.y));
+    if (this.attackPattern === 'slam') { const topBandMaxY = Math.max(10, Math.floor(canvas.height * 0.35) - this.height); this.y = Math.min(this.y, topBandMaxY); }
     }
     return { dx, dy, dist, cx, cy, px, py };
   }
@@ -90,14 +91,13 @@ export class Boss {
     let dy = py - cy;
     const dist = Math.max(1, Math.hypot(dx, dy));
 
+    const vScale = (this.attackPattern === 'slam') ? 0.5 : 1.0;
     if (dist < min) {
-      // too close: move away faster
       this.x -= (dx / dist) * (this.speed * 1.8);
-      this.y -= (dy / dist) * (this.speed * 1.2);
+      this.y -= (dy / dist) * (this.speed * 1.2) * vScale;
     } else if (dist > max) {
-      // too far: approach slowly
       this.x += (dx / dist) * (this.speed * 0.9);
-      this.y += (dy / dist) * (this.speed * 0.7);
+      this.y += (dy / dist) * (this.speed * 0.7) * vScale;
     } else {
       // in band: strafe horizontally to feel smarter
       this.x += Math.sign(Math.sin(this._t * 0.05)) * strafeSpeed;
@@ -107,6 +107,7 @@ export class Boss {
     this.x = Math.max(0, Math.min(canvas.width - this.width, this.x));
     const maxY = canvas.height - bottomBarHeight - this.height - 50;
     this.y = Math.max(10, Math.min(maxY, this.y));
+    if (this.attackPattern === 'slam') { const topBandMaxY = Math.max(10, Math.floor(canvas.height * 0.35) - this.height); this.y = Math.min(this.y, topBandMaxY); }
   }
 
   /** Aimed shot at player */
@@ -171,12 +172,11 @@ const AttackPatterns = {
     
     if (s.phase === 0) { // Rush phase
       if (s.timer < 30) return; // windup
-      
-      // Rush toward player
       const k = this._pursue(player, canvas, bottomBarHeight);
       const mult = 2.5;
       this.x += (k.dx / Math.max(1, k.dist)) * this.speed * mult;
-      this.y += (k.dy / Math.max(1, k.dist)) * this.speed * mult;
+      this.y += (k.dy / Math.max(1, k.dist)) * this.speed * mult * 0.35;
+      { const topBandMaxY = Math.max(10, Math.floor(canvas.height * 0.35) - this.height); this.y = Math.min(this.y, topBandMaxY); }
       
       if (s.timer >= 40) { 
         s.phase = 1; 
@@ -681,3 +681,8 @@ export const bossDefinitions = [
 ];
 
 export default Boss;
+
+
+
+
+

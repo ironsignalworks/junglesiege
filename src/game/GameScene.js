@@ -365,9 +365,9 @@ function drawBossIntro(ctx, now) {
   const quoteY = Math.floor(H * 0.50); // Quote as separate paragraph
 
   // CONSISTENT 2-PLAYER FONT SIZE FOR ALL BOSSES
-  const headerFontSize = 28; // Fixed size for "INCOMING BOSS"
-  const nameFontSize = 32;   // Fixed size for boss names
-  const quoteFontSize = 24;  // Fixed size for quotes
+  const headerFontSize = 36; // Fixed size for "INCOMING BOSS"
+  const nameFontSize = 44;   // Fixed size for boss names
+  const quoteFontSize = 28;  // Fixed size for quotes
 
   // Draw "INCOMING BOSS" header - LEFT ALIGNED
   ctx.save();
@@ -1041,6 +1041,9 @@ export class GameScene {
   }
 
   update(now, deltaTime = 16) {
+    // Freeze simulation while on end screen to prevent stale timers/sounds from leaking.
+    if (!state.gameStarted || state.__ended) return;
+
     // Performance monitoring
     const frameStartTime = performance.now();
     
@@ -1493,14 +1496,14 @@ export class GameScene {
         state.ctx.save();
         const w = Math.round(Math.max(bp.width || 128, 48) * 1.0); // DOUBLED for sweep projectiles (was 64/24, now 128/48)
         const h = Math.round(Math.max(bp.height || 40, 24) * 1.0); // DOUBLED for sweep projectiles (was 20/12, now 40/24)
-        if (img) state.ctx.drawImage(img, bp.x, bp.y, w, h);
+        if (img) { const cx = bp.x + w/2, cy = bp.y + h/2; state.ctx.save(); state.ctx.translate(cx, cy); bp.spin = Number.isFinite(bp.spin) ? bp.spin : 0.12; bp.rot = (bp.rot||0) + bp.spin; state.ctx.rotate(bp.rot||0); state.ctx.drawImage(img, -w/2, -h/2, w, h); state.ctx.restore(); }
         else { state.ctx.fillStyle = "#e91e63"; state.ctx.beginPath(); state.arc(bp.x + w/2, bp.y + h/2, w, 0, Math.PI*2); state.ctx.fill(); }
         state.ctx.restore();
       } else if (bp.kind === "trail") {
         state.ctx.save();
         const w = Math.round(Math.max(bp.width || 48, 36) * 1.0); // DOUBLED for trail projectiles (was 24/18, now 48/36)
         const h = Math.round(Math.max(bp.height || 48, 24) * 1.0); // DOUBLED for trail projectiles (was 24/12, now 48/24)
-        if (img) state.ctx.drawImage(img, bp.x, bp.y, w, h);
+        if (img) { const cx = bp.x + w/2, cy = bp.y + h/2; state.ctx.save(); state.ctx.translate(cx, cy); bp.spin = Number.isFinite(bp.spin) ? bp.spin : 0.12; bp.rot = (bp.rot||0) + bp.spin; state.ctx.rotate(bp.rot||0); state.ctx.drawImage(img, -w/2, -h/2, w, h); state.ctx.restore(); }
         else { state.ctx.fillStyle = "#ffcc66"; state.ctx.fillRect(bp.x, bp.y, w, h); }
         state.ctx.restore();
       } else if (bp.kind === "puddle") {
@@ -1517,14 +1520,14 @@ export class GameScene {
 
         state.ctx.save();
         state.ctx.globalAlpha = 1.0;
-        if (timg && (timg.width || timg.height)) state.ctx.drawImage(timg, x, y, w, h);
+        if (timg && (timg.width || timg.height)) { const cx = x + w/2, cy = y + h/2; state.ctx.save(); state.ctx.translate(cx, cy); bp.spin = Number.isFinite(bp.spin) ? bp.spin : 0.12; bp.rot = (bp.rot||0) + bp.spin; state.ctx.rotate(bp.rot||0); state.ctx.drawImage(timg, -w/2, -h/2, w, h); state.ctx.restore(); }
         else { state.ctx.fillStyle = bp.blink ? "#ff3b3b" : "#ffcc66"; state.ctx.fillRect(x, y, w, h); }
         state.ctx.restore();
       } else {
         state.ctx.save();
         const w = Math.round(Math.max(bp.width || 64, 40) * 1.0); // INCREASED minimum size for bigger projectiles (was 32/20, now 64/40)
         const h = Math.round(Math.max(bp.height || 64, 40) * 1.0); // INCREASED minimum size for bigger projectiles (was 32/20, now 64/40)
-        if (img) state.ctx.drawImage(img, bp.x, bp.y, w, h);
+        if (img) { const cx = bp.x + w/2, cy = bp.y + h/2; state.ctx.save(); state.ctx.translate(cx, cy); bp.spin = Number.isFinite(bp.spin) ? bp.spin : 0.12; bp.rot = (bp.rot||0) + bp.spin; state.ctx.rotate(bp.rot||0); state.ctx.drawImage(img, -w/2, -h/2, w, h); state.ctx.restore(); }
         else { state.ctx.fillStyle = "#ffcc66"; state.ctx.fillRect(bp.x, bp.y, w, h); }
         state.ctx.restore();
       }
@@ -2074,6 +2077,8 @@ window.focusCanvas = function() {
     console.log("No canvas found");
   }
 };
+
+
 
 
 

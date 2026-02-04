@@ -1,13 +1,20 @@
 // src/ui/screens.js
-import { state } from "../core/state.js";
+import { state, stopAllAudio } from "../core/state.js";
 import { resources } from "./resources.js";
 
 export function showEndScreen(kind = "fail", opts = {}) {
+  try { stopAllAudio(resources); } catch {}
   try {
     if (String(kind).toLowerCase() === 'victory') {
-      resources.audio?.fxVictoryFanfare && resources.audio.fxVictoryFanfare.play?.().catch(()=>{});
+      if (resources.audio?.fxVictoryFanfare) {
+        resources.audio.fxVictoryFanfare.currentTime = 0;
+        resources.audio.fxVictoryFanfare.play?.().catch(()=>{});
+      }
     } else {
-      resources.audio?.gameOverMusic && resources.audio.gameOverMusic.play?.().catch(()=>{});
+      if (resources.audio?.gameOverMusic) {
+        resources.audio.gameOverMusic.currentTime = 0;
+        resources.audio.gameOverMusic.play?.().catch(()=>{});
+      }
     }
   } catch {}
 
@@ -164,6 +171,7 @@ export function showEndScreen(kind = "fail", opts = {}) {
   state.gameStarted = false;
 
   const restart = () => {
+    try { stopAllAudio(resources); } catch {}
     try { document.removeEventListener('keydown', keyHandler, true); } catch{};
     try { window.dispatchEvent(new Event('end-screen-cleanup')); } catch{};
 
@@ -186,4 +194,3 @@ export function showEndScreen(kind = "fail", opts = {}) {
   // Gate restart behind explicit click
   btn.onclick = restart;
 }
-
