@@ -21,7 +21,7 @@ export const resources = {
     "bg_jungle1.png": "assets/images/bg_jungle1.png",
     "bg_jungle2.png": "assets/images/bg_jungle2.png",
     "bg_jungle3.png": "assets/images/bg_jungle3.png",
-    "bg_jungle4.png": "assets/images/bg_jungle4.png",
+    "bg_jungle4_v2.png": "assets/images/bg_jungle4_v2.png",
     "bg_jungle5.png": "assets/images/bg_jungle5.png",
     "bg_jungle6.png": "assets/images/bg_jungle6.png",
     "bg_jungle7.png": "assets/images/bg_jungle7.png",

@@ -20,7 +20,7 @@ export const constants = {
 
   // Assets / backgrounds (optional, used in GameScene)
   bgImages: [
-    "bg_jungle1.png","bg_jungle2.png","bg_jungle3.png","bg_jungle4.png",
+    "bg_jungle1.png","bg_jungle2.png","bg_jungle3.png","bg_jungle4_v2.png",
     "bg_jungle5.png","bg_jungle6.png","bg_jungle7.png","bg_jungle8.png",
     "bg_jungle9.png","bg_jungle10.png","bg_jungle11.png","bg_jungle12.png","bg_jungle13.png",
   ],
