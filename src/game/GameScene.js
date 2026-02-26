@@ -463,6 +463,28 @@ function drawBossIntro(ctx, now) {
     ctx.drawImage(portrait, x, y, w, h);
   }
 
+  // Re-draw boss name in the foreground so it is never hidden behind portrait art.
+  ctx.save();
+  ctx.textAlign = "left";
+  ctx.textBaseline = "top";
+  ctx.font = `900 ${nameFontSize}px 'Press Start 2P', monospace`;
+  ctx.shadowColor = "rgba(255,60,60,0.6)";
+  ctx.shadowBlur = 18;
+  ctx.translate(textStartX + shake.x, bossNameY + shake.y);
+  ctx.scale(s, s);
+  ctx.globalCompositeOperation = "lighter";
+  ctx.fillStyle = `rgba(70, 255, 255, ${0.65 + flashAlpha})`;
+  ctx.fillText(bossName, 1.6, 0);
+  ctx.fillStyle = `rgba(255, 60, 60, ${0.8 + flashAlpha})`;
+  ctx.fillText(bossName, -1.6, 0);
+  ctx.fillStyle = `rgba(255, 59, 59, 0.98)`;
+  ctx.fillText(bossName, 0, 0);
+  if (((t / 16) | 0) % 2 === 0) {
+    ctx.globalAlpha = 0.90;
+    ctx.fillText(bossName, 0, 0);
+  }
+  ctx.restore();
+
   // BOSS QUOTE - LEFT ALIGNED WITH INCOMING TEXT, PARAGRAPH BELOW + MELT DOWN EFFECT
   if (now - bi.lastType >= bi.typeSpeed && bi.typedChars < bi.line.length) {
     bi.typedChars++; bi.lastType = now; if (bi.typedChars === bi.line.length) bi.doneAt = now;
@@ -661,63 +683,37 @@ function drawArcadeRibbon(ctx, text) {
   const t = Date.now();
   const W = state.canvas.width;
   const H = state.canvas.height;
-  // REPOSITIONED: Move to TOP SCREEN for critical warnings (15% down from top)
-  const yBase = Math.floor(H * 0.15) + Math.sin(t * 0.012) * 3; // TOP positioning for warnings
-  
+  const yBase = Math.floor(H * 0.15) + Math.sin(t * 0.012) * 3;
+
   ctx.save();
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  
-  // OLD-SCHOOL RETRO FONT STYLING
-  ctx.font = "900 28px 'Press Start 2P', monospace"; // Consistent with military font
-  
-  // OLD-SCHOOL CRT GLOW EFFECT
-  const beat = (t % 800) < 200 ? 1 : 0; // Slower flash
-  ctx.globalCompositeOperation = "lighter";
-  
-  // Multiple shadow layers for old-school glow
-  ctx.shadowColor = "rgba(255, 204, 0, 0.8)";
-  ctx.shadowBlur = 15 + beat * 8;
-  
-  // Background glow layer
-  ctx.fillStyle = "rgba(255, 204, 0, 0.3)";
-  ctx.fillText(text, W / 2, yBase);
-  
-  // Main shadow layers (old-school CRT style)
-  ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
-  ctx.shadowBlur = 0;
-  ctx.shadowOffsetX = 3;
-  ctx.shadowOffsetY = 3;
-  ctx.fillStyle = "#000";
-  ctx.fillText(text, W / 2, yBase);
-  
-  // Reset shadow
-  ctx.shadowOffsetX = 0;
-  ctx.shadowOffsetY = 0;
-  
-  // Bright outline glow
-  ctx.shadowColor = "rgba(255, 204, 0, 0.9)";
-  ctx.shadowBlur = 12 + beat * 4;
-  ctx.fillStyle = "rgba(255, 204, 0, 0.8)";
-  ctx.fillText(text, W / 2 + 1.5, yBase);
-  
-  // Contrasting inner glow
-  ctx.fillStyle = "rgba(255, 68, 68, 0.7)";
-  ctx.fillText(text, W / 2 - 1.5, yBase);
-  
-  // Main bright text
-  ctx.fillStyle = "#ffffff";
-  ctx.shadowColor = "rgba(255, 255, 255, 0.8)";
-  ctx.shadowBlur = 6;
-  ctx.fillText(text, W / 2, yBase);
-  
-  // Add scanline effect for old-school feel
-  if (beat) {
-    ctx.globalCompositeOperation = "multiply";
-    ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
-    ctx.fillText(text, W / 2, yBase);
-  }
-  
+  ctx.font = "900 24px 'Press Start 2P', monospace";
+
+  const tw = Math.ceil(ctx.measureText(text).width);
+  const boxW = Math.max(300, Math.min(Math.floor(W * 0.86), tw + 48));
+  const boxH = 54;
+  const boxX = Math.floor((W - boxW) / 2);
+  const boxY = Math.floor(yBase - boxH / 2);
+
+  const bg = ctx.createLinearGradient(0, boxY, 0, boxY + boxH);
+  bg.addColorStop(0, "rgba(58,22,18,0.96)");
+  bg.addColorStop(1, "rgba(36,13,11,0.96)");
+  ctx.fillStyle = bg;
+  ctx.fillRect(boxX, boxY, boxW, boxH);
+
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = "#8b0000";
+  ctx.strokeRect(boxX + 1, boxY + 1, boxW - 2, boxH - 2);
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = "#cfb53b";
+  ctx.strokeRect(boxX + 6, boxY + 6, boxW - 12, boxH - 12);
+
+  const beat = (t % 600) < 220;
+  ctx.shadowColor = beat ? "rgba(255,80,80,0.8)" : "rgba(255,80,80,0.45)";
+  ctx.shadowBlur = beat ? 15 : 8;
+  ctx.fillStyle = "#ffd7c7";
+  ctx.fillText(text, Math.floor(W / 2), yBase);
   ctx.restore();
 }
 
@@ -1030,7 +1026,11 @@ export class GameScene {
       state.screenShake = Math.max(state.screenShake || 0, fromCollision ? 8 : 6);
       return;
     }
-    state.health = Math.max(0, (state.health || 0) - amount);
+    const dmgMult = Number.isFinite(constants?.playerDamageTakenMultiplier)
+      ? Math.max(0, constants.playerDamageTakenMultiplier)
+      : 1;
+    const scaled = Math.max(0, amount * dmgMult);
+    state.health = Math.max(0, (state.health || 0) - scaled);
     try { playSound && resources?.audio?.fxHurt && playSound(resources.audio.fxHurt); } catch {}
     state.flashRed = Math.max(state.flashRed || 0, fromCollision ? 0.4 : 0.25);
     state.screenShake = Math.max(state.screenShake || 0, fromCollision ? 10 : 7);
@@ -1175,16 +1175,8 @@ export class GameScene {
     updatePlayerBullets(ctx);
     updateEnemyBullets(ctx, (eb, i) => {
       if (isColliding(eb, state.tank)) {
-        if (hasShieldActive()) { try { playSound && resources?.audio?.fxPickup && playSound(resources.audio.fxPickup); } catch {} }
         state.enemyBullets.splice(i, 1);
-        if (hasShieldActive()) {
-          state.flashWhite = Math.max(state.flashWhite || 0, 0.15);
-          state.screenShake = Math.max(state.screenShake || 0, 6);
-        } else {
-          state.health -= 8;
-          state.flashRed = Math.max(state.flashRed || 0, 0.18);
-          state.screenShake = Math.max(state.screenShake || 0, 7);
-        }
+        this.onPlayerHit(8, false);
         return true;
       }
       return false;
@@ -1432,7 +1424,7 @@ export class GameScene {
         const R = 90;
         const tx = state.tank.x + state.tank.width / 2;
         const ty = state.tank.y + state.tank.height / 2;
-        if (Math.hypot(tx - cx, ty - cy) <= R && !hasShieldActive()) state.health -= 24;
+        if (Math.hypot(tx - cx, ty - cy) <= R) this.onPlayerHit(24, true);
         state.screenShake = Math.max(state.screenShake || 0, 14);
         state.bossProjectiles.splice(i, 1);
       };
@@ -1453,7 +1445,7 @@ export class GameScene {
                 tx = state.tank.x + state.tank.width / 2,
                 ty = state.tank.y + state.tank.height / 2,
                 d  = Math.hypot(tx - cx, ty - cy);
-          if (Math.abs(d - bp.radius) < 14 && !hasShieldActive()) state.health -= 12;
+          if (Math.abs(d - bp.radius) < 14) this.onPlayerHit(12, false);
           if (bp.radius > (bp.maxRadius ?? 260)) { state.bossProjectiles.splice(i,1); continue; }
           break;
         }
@@ -1461,7 +1453,7 @@ export class GameScene {
           if (isColliding(
             { x: bp.x - bp.radius, y: bp.y - bp.radius, width: (bp.radius || 0) * 2, height: (bp.radius || 0) * 2 },
             state.tank
-          )) { if (!hasShieldActive()) state.health -= 0.5; }
+          )) { this.onPlayerHit(0.5, false); }
           break;
         }
         default: break;
@@ -1535,15 +1527,7 @@ export class GameScene {
       const isAOE = (bp.kind === "shock_ring" || bp.kind === "puddle");
       if (!isAOE && isColliding(bp, state.tank)) {
         if (bp.kind === "timer_bomb") { detonateTimerBomb(); continue; }
-        if (hasShieldActive()) {
-          try { playSound && resources?.audio?.fxPickup && playSound(resources.audio.fxPickup); } catch {}
-          state.flashWhite = Math.max(state.flashWhite || 0, 0.15);
-          state.screenShake = Math.max(state.screenShake || 0, 6);
-        } else {
-          state.health -= 16;
-          state.screenShake = Math.max(state.screenShake || 0, 15);
-          state.flashRed = Math.max(state.flashRed || 0, 0.5);
-        }
+        this.onPlayerHit(16, true);
         state.bossProjectiles.splice(i, 1);
         continue;
       }

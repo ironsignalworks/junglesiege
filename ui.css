@@ -1,0 +1,289 @@
+﻿@import url('./styles.css');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+:root {
+  /* Z-order */
+  --z-canvas: 10;
+  --z-hud: 20;
+  --z-overlay: 30;
+  --z-crt: 40; /* Scanlines go on top */
+
+  /* Apocalypse Now Palette */
+  --jungle-green: #2d3528;      /* Deep jungle shadows */
+  --army-olive: #4b5320;       /* Classic fatigue green */
+  --phosphor-green: #49fb35;   /* CRT glow */
+  --blood-red: #8b0000;        /* Dried blood */
+  --rust-orange: #a0522d;      /* Oxidized metal */
+  --stencil-yellow: #cfb53b;   /* Faded military stencil */
+  --font: 'Press Start 2P', monospace;
+  
+  /* Textures */
+  --metal-grain: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
+  --dirt-overlay: url('https://www.transparenttextures.com/patterns/dust.png');
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0; height: 100%;
+  background: #050705; 
+  color: var(--phosphor-green);
+  font-family: var(--font);
+  overflow: hidden;
+  text-transform: uppercase;
+}
+
+/* ---------- VINTAGE CRT OVERLAY ---------- */
+body::after {
+  content: " ";
+  display: block;
+  position: fixed;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+              linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  z-index: var(--z-crt);
+  background-size: 100% 3px, 3px 100%;
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+/* No CRT scanline overlay during active gameplay. */
+body.gameplay-active::after {
+  display: none;
+}
+
+/* Screen Flicker Animation */
+@keyframes flicker {
+  0% { opacity: 0.97; }
+  5% { opacity: 0.95; }
+  10% { opacity: 0.9; }
+  15% { opacity: 0.99; }
+  100% { opacity: 1; }
+}
+
+.game-root {
+  position: fixed; inset: 0;
+  display: grid; place-items: center;
+  background: #000;
+  animation: flicker 0.15s infinite;
+}
+
+/* ---------- START SCREEN (The Dossier) ---------- */
+#start-screen {
+  background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('/assets/images/bg_jungle4_v2.png');
+  background-size: cover;
+  border: 20px solid var(--jungle-green);
+  outline: 4px inset var(--army-olive);
+}
+
+#start-screen .game-title {
+  color: var(--stencil-yellow);
+  text-shadow: 4px 4px 0px #000, 0 0 15px rgba(207, 181, 59, 0.4);
+  letter-spacing: 0.2em;
+}
+
+#start-button {
+  background: var(--blood-red) !important;
+  color: #fff !important;
+  border: 4px solid #440000 !important;
+  box-shadow: 4px 4px 0 #000;
+  font-size: 1.2rem;
+}
+
+#start-button:hover {
+  background: #b30000 !important;
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 #000;
+}
+
+/* ---------- HUD: MILITARY SURPLUS RADIO STYLE ---------- */
+.hud-bottom {
+  position: absolute; bottom: 8px; left: 10px; right: 10px; height: 62px;
+  display: flex; align-items: center; justify-content: space-between; 
+  padding: 0 16px;
+  z-index: var(--z-hud);
+  
+  /* Weathered Metal Case */
+  background: var(--jungle-green) var(--metal-grain) !important;
+  border: 3px solid #1a1e17 !important;
+  border-top: 3px solid #3e4838 !important; /* lighting */
+  box-shadow: 
+    0 -10px 30px rgba(0,0,0,0.8),
+    inset 0 0 20px rgba(0,0,0,0.5);
+}
+
+/* HUD Labels - Distressed Stencil Look */
+.hud-label, .lbl {
+  color: var(--stencil-yellow) !important;
+  font-size: 10px !important;
+  letter-spacing: 1px;
+  opacity: 0.8;
+  text-shadow: 1px 1px 1px #000;
+}
+
+.hud-value, .val {
+  color: var(--phosphor-green) !important;
+  font-size: 14px !important;
+  text-shadow: 0 0 8px rgba(73, 251, 53, 0.6);
+}
+
+/* ---------- HP BAR: FIELD MEDIC STYLE ---------- */
+.hp-bar {
+  width: 210px; height: 18px;
+  background: #111 !important;
+  border: 2px solid var(--army-olive) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Red crosses or scanlines on HP */
+.hp-fill {
+  background: linear-gradient(180deg, var(--blood-red), #5e0000) !important;
+  border-right: 2px solid var(--phosphor-green);
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+}
+
+/* ---------- AMMO PIPS: BRASS CASINGS ---------- */
+.pips .pip {
+  width: 10px; height: 18px;
+  background: #222 !important;
+  border: 1px solid #111 !important;
+  margin-right: 4px;
+  clip-path: polygon(10% 0%, 90% 0%, 100% 20%, 100% 100%, 0% 100%, 0% 20%);
+}
+
+.pips .pip.on {
+  background: linear-gradient(to bottom, #d4af37, #8b6d14) !important; /* Brass color */
+  border: 1px solid #5a4207 !important;
+  box-shadow: 0 0 5px rgba(212, 175, 55, 0.4);
+}
+
+/* ---------- BOSS HUD: DANGER STRIPES ---------- */
+.boss-hp-container {
+  top: 20px;
+  background: rgba(0,0,0,0.85);
+  padding: 15px;
+  border: 2px solid var(--blood-red);
+}
+
+.boss-hp-bar-container {
+  background: repeating-linear-gradient(
+    45deg,
+    #000,
+    #000 10px,
+    #222 10px,
+    #222 20px
+  ) !important;
+  border: 3px solid #444 !important;
+}
+
+.boss-name-text {
+  color: var(--blood-red) !important;
+  font-size: 16px;
+  text-shadow: 2px 2px 0px #000;
+  animation: blink 0.5s infinite alternate;
+}
+
+@keyframes blink {
+  from { opacity: 1; }
+  to { opacity: 0.6; }
+}
+
+/* ---------- END SCREEN: MISSION FAILED ---------- */
+#end-screen {
+  background: radial-gradient(circle, #2d0000 0%, #000 100%) !important;
+}
+
+#end-title {
+  font-size: 3.5rem;
+  color: var(--blood-red);
+  text-shadow: 0 0 20px rgba(139, 0, 0, 0.8);
+  margin-bottom: 2rem;
+}
+
+/* ---------- UTILITY: HUD TAGS (Round/Sector) ---------- */
+.hud-bottom .tag {
+  background: #1a1e17 !important; /* Dark fatigue green */
+  border-left: 4px solid var(--army-olive) !important;
+  border-right: 4px solid var(--army-olive) !important;
+  padding: 5px 15px !important;
+}
+
+/* Hide cursor only on canvas for immersion */
+#gameCanvas {
+  cursor: url('https://cur.cursors-4u.net/games/gam-4/gam372.cur'), crosshair;
+}
+
+/* ---------- UNIFIED DOM BANNERS / NOTIFICATIONS ---------- */
+.warning-overlay,
+.pill,
+.ribbon {
+  position: absolute;
+  z-index: 70;
+  pointer-events: none;
+  min-width: 190px;
+  max-width: min(62vw, 680px);
+  padding: 10px 14px;
+  border: 2px solid var(--army-olive);
+  border-top-color: #5c6840;
+  border-bottom-color: #1f241a;
+  background: linear-gradient(180deg, rgba(45,53,40,0.96), rgba(28,34,25,0.96));
+  color: var(--phosphor-green);
+  font-family: var(--font);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-shadow: 0 0 6px rgba(73, 251, 53, 0.35);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.55), inset 0 0 10px rgba(0,0,0,0.35);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  animation: uiBannerIn 140ms ease-out;
+}
+
+.warning-overlay {
+  border-color: #7b2d1f;
+  border-top-color: #aa4a34;
+  background: linear-gradient(180deg, rgba(74,30,24,0.96), rgba(43,17,14,0.96));
+  color: #ffd7c7;
+  text-shadow: 0 0 7px rgba(255, 153, 122, 0.45);
+}
+
+.pill {
+  min-width: 140px;
+  text-align: center;
+  border-color: #3d5b26;
+}
+
+.ribbon {
+  min-width: 280px;
+  text-align: center;
+  border-color: var(--stencil-yellow);
+  color: #fff0bf;
+  text-shadow: 0 0 7px rgba(207,181,59,0.45);
+}
+
+@keyframes uiBannerIn {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+
+/* Start screen hero line */
+#start-screen .hero-tagline {
+  margin: 0.25rem 0 0.8rem;
+  color: var(--hud-green);
+  font-size: clamp(0.62rem, 1.5vw, 0.9rem);
+  letter-spacing: 0.08em;
+  text-transform: none;
+  text-shadow: 0 0 7px rgba(73, 251, 53, 0.35);
+  opacity: 0.92;
+}
+
+/* Footer link without framed box */
+.siteFooter a {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+

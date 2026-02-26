@@ -71,6 +71,7 @@ export function createIntroOverlay(config = {}) {
   let finishedCardAt = 0;
   let keyHandlerBound = null;
   let buttonRect = null; // last computed continue button rect in canvas coords
+  let skipButtonRect = null; // last computed skip button rect in canvas coords
 
   function loadImageByKey(key) {
     if (!key) return null;
@@ -133,14 +134,27 @@ export function createIntroOverlay(config = {}) {
 
   function onPointerAdvance(ev) {
     if (!active) return;
-    // Require clicking the explicit continue button area
+    // Button-first click handling: ESC skip button, then continue button.
+    // If click is elsewhere, allow advancing too (no hard gate).
     try {
       if (buttonRect && ev && ev.clientX != null && ev.clientY != null && state?.canvas) {
         const r = state.canvas.getBoundingClientRect();
         const x = (ev.clientX - r.left) * (state.canvas.width / Math.max(1, r.width));
         const y = (ev.clientY - r.top)  * (state.canvas.height / Math.max(1, r.height));
-        const inside = x >= buttonRect.x && x <= buttonRect.x + buttonRect.w && y >= buttonRect.y && y <= buttonRect.y + buttonRect.h;
-        if (!inside) return; // ignore clicks outside the button
+        const insideSkip = !!skipButtonRect &&
+          x >= skipButtonRect.x && x <= skipButtonRect.x + skipButtonRect.w &&
+          y >= skipButtonRect.y && y <= skipButtonRect.y + skipButtonRect.h;
+        if (insideSkip) {
+          active = false;
+          detachInput();
+          return;
+        }
+        const insideContinue =
+          x >= buttonRect.x && x <= buttonRect.x + buttonRect.w &&
+          y >= buttonRect.y && y <= buttonRect.y + buttonRect.h;
+        if (!insideContinue) {
+          // Click anywhere to advance - avoids forcing a tiny hitbox.
+        }
       }
     } catch {}
     const now = performance.now?.() ?? Date.now();
@@ -172,40 +186,67 @@ export function createIntroOverlay(config = {}) {
     ctx.restore();
   }
 
-  // Draw blinking gate text inside the card at bottom
-  function drawInCardGateText(ctx, panelX, panelY, panelW, panelH, now) {
+  // Draw in-card controls: CONTINUE + ESC SKIP
+  function drawInCardControls(ctx, panelX, panelY, panelW, panelH, now) {
     const blinkCycle = Math.floor(now / 600) % 2; // Blink every 600ms
-    if (blinkCycle === 0) return; // Hide during blink
     
     ctx.save();
-    // Draw a chunky HUD-style 'CONTINUE' button inside the panel
+    // CONTINUE button (bottom-right)
     const btnW = Math.min(180, Math.max(120, Math.floor(panelW * 0.35)));
     const btnH = 28;
     const btnX = panelX + panelW - btnW - 14;
     const btnY = panelY + panelH - btnH - 12;
     buttonRect = { x: btnX, y: btnY, w: btnW, h: btnH };
 
-    // Button plate
+    if (blinkCycle === 1) {
+      // Button plate
+      ctx.fillStyle = "#171717";
+      ctx.fillRect(btnX, btnY, btnW, btnH);
+      ctx.strokeStyle = "#ffc107";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(btnX + 1, btnY + 1, btnW - 2, btnH - 2);
+
+      // Bevel
+      ctx.fillStyle = "rgba(255,255,255,0.06)";
+      ctx.fillRect(btnX, btnY, btnW, 2);
+      ctx.fillStyle = "rgba(0,0,0,0.6)";
+      ctx.fillRect(btnX, btnY + btnH - 2, btnW, 2);
+
+      // Text
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.font = "12px 'Press Start 2P', monospace";
+      ctx.fillStyle = "#000";
+      ctx.fillText("CONTINUE", btnX + btnW / 2 + 1, btnY + btnH / 2 + 1);
+      ctx.fillStyle = "#ffc107";
+      ctx.fillText("CONTINUE", btnX + btnW / 2, btnY + btnH / 2);
+    }
+
+    // ESC SKIP button (top-right of panel)
+    const skipW = Math.min(150, Math.max(110, Math.floor(panelW * 0.30)));
+    const skipH = 24;
+    const skipX = panelX + panelW - skipW - 14;
+    const skipY = panelY + 12;
+    skipButtonRect = { x: skipX, y: skipY, w: skipW, h: skipH };
+
     ctx.fillStyle = "#171717";
-    ctx.fillRect(btnX, btnY, btnW, btnH);
+    ctx.fillRect(skipX, skipY, skipW, skipH);
     ctx.strokeStyle = "#ffc107";
     ctx.lineWidth = 2;
-    ctx.strokeRect(btnX + 1, btnY + 1, btnW - 2, btnH - 2);
+    ctx.strokeRect(skipX + 1, skipY + 1, skipW - 2, skipH - 2);
 
-    // Bevel
     ctx.fillStyle = "rgba(255,255,255,0.06)";
-    ctx.fillRect(btnX, btnY, btnW, 2);
+    ctx.fillRect(skipX, skipY, skipW, 2);
     ctx.fillStyle = "rgba(0,0,0,0.6)";
-    ctx.fillRect(btnX, btnY + btnH - 2, btnW, 2);
+    ctx.fillRect(skipX, skipY + skipH - 2, skipW, 2);
 
-    // Text
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.font = "12px 'Press Start 2P', monospace";
+    ctx.font = "10px 'Press Start 2P', monospace";
     ctx.fillStyle = "#000";
-    ctx.fillText("CONTINUE", btnX + btnW / 2 + 1, btnY + btnH / 2 + 1);
+    ctx.fillText("ESC SKIP", skipX + skipW / 2 + 1, skipY + skipH / 2 + 1);
     ctx.fillStyle = "#ffc107";
-    ctx.fillText("CONTINUE", btnX + btnW / 2, btnY + btnH / 2);
+    ctx.fillText("ESC SKIP", skipX + skipW / 2, skipY + skipH / 2);
     ctx.restore();
   }
 
@@ -233,6 +274,8 @@ export function createIntroOverlay(config = {}) {
 
   function updateAndRender(ctx, nowIn) {
     if (!active) return;
+    buttonRect = null;
+    skipButtonRect = null;
     const now = nowIn ?? (performance.now?.() ?? Date.now());
     const W = state.canvas?.width ?? ctx.canvas.width;
     const H = state.canvas?.height ?? ctx.canvas.height;
@@ -344,8 +387,8 @@ export function createIntroOverlay(config = {}) {
 
     ctx.restore();
 
-    // Draw blinking gate text inside the card
-    drawInCardGateText(ctx, panelX, panelY, panelW, panelH, now);
+    // Draw in-card controls
+    drawInCardControls(ctx, panelX, panelY, panelW, panelH, now);
 
     // Remove auto-advance; require Enter key or clicking the CONTINUE button
   }

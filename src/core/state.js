@@ -1,4 +1,4 @@
-// src/core/state.js - Optimized state management
+﻿// src/core/state.js - Optimized state management
 import { constants } from "../game/constants.js";
 
 // Object pooling for frequently created objects
@@ -76,7 +76,7 @@ export const state = {
 
   // Player & core stats
   tank: { x: 0, y: 0, width: 80, height: 80 },
-  ammo: 100,
+  ammo: Number.isFinite(constants?.startingAmmo) ? constants.startingAmmo : 50,
   health: 100,
   score: 0,
   round: 0,
@@ -124,7 +124,7 @@ export const state = {
   performanceMode: 'high', // Added for adaptive performance
 
   // HUD / layout
-  bottomBarHeight: 96,
+  bottomBarHeight: 80,
   dpr: 1,
   
   // Object pools
@@ -255,12 +255,10 @@ export function resetGame() {
   state.round = 0;              // will be set to 1 on startGame()
   state._hasStartedFirstRound = false; // ensure first nextRound does NOT increment to 2
   state.spawningInProgress = false;
-  // Combo & banners
+  // Combo state
   state.comboCount = 0;
   state.comboDisplay = "";
   state.lastKillTime = 0;
-  state.bannerQueue = [];
-  state.bannerActive = null;
 
   // Reset tank position
   if (tank) {
@@ -416,3 +414,4 @@ export function cleanup() {
   // Clear resize cache
   resizeCache = null;
 }
+

@@ -1,5 +1,6 @@
 // src/systems/slug.js
 import { state, playSound } from "../core/state.js";
+import { constants } from "./constants.js";
 import { resources } from "./resources.js";
 import { isColliding } from "./collisions.js";
 import { spawnFxExplosion } from "./fx.js";
@@ -119,7 +120,10 @@ export function updateAndRenderSlugs(ctx, now) {
       }
 
       // damage player and knock slug back
-      state.health = Math.max(0, (state.health || 0) - 4);
+      const dmgMult = Number.isFinite(constants?.playerDamageTakenMultiplier)
+        ? Math.max(0, constants.playerDamageTakenMultiplier)
+        : 1;
+      state.health = Math.max(0, (state.health || 0) - (4 * dmgMult));
       state.flashRed = Math.max(state.flashRed || 0, 0.18);
       state.screenShake = Math.max(state.screenShake || 0, 6);
       s.x -= ux * 8; s.y -= uy * 8;

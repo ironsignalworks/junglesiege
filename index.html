@@ -1,12 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport"
 content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <title>Jungle Siege</title>
-<link rel="stylesheet" href="game.css">   <!-- layout + start/end + canvas -->
-<link rel="stylesheet" href="hud.css">    <!-- HUD visuals only -->
+<link rel="stylesheet" href="ui.css">
 <link rel="icon" href="favicon.ico" type="image/x-icon" />
 </head>
 <body class="game-root">
@@ -22,7 +21,7 @@ content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no,
   <div class="screen-content">
     <p class="game-title line1">JUNGLE</p>
     <p class="game-title line2">SIEGE</p>
-
+    <p class="hero-tagline">Find the source... Or become it.</p>
     <button id="start-button" type="button">Start</button>
   </div>
 
@@ -30,7 +29,7 @@ content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no,
     <a href="https://ironsignalworks.com" target="_blank" rel="noopener" aria-label="Visit Iron Signal Works">
       <img src="assets/images/isw1_logosmall.png" alt="Iron Signal Works" />
       <span class="brand">IRON SIGNAL WORKS</span>
-      <span class="tag">COLD CODE • HOT CIRCUITS</span>
+      <span class="tag">COLD CODE &bull; HOT CIRCUITS</span>
     </a>
   </footer>
 </div>
@@ -84,7 +83,7 @@ content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no,
           <div class="pip on"></div>
           <div class="pip"></div>
         </div>
-        <span class="hud-value" id="hud-ammo-value">150</span>
+        <span class="hud-value" id="hud-ammo-value">1000</span>
       </div>
       
       <div class="hud-seg score">
@@ -111,10 +110,9 @@ content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no,
     <div class="story-card-text"></div>
   </div>
 </template>
-
-
-
-
   <script type="module" src="./src/game/main.js"></script>
 </body>
 </html>
+
+
+

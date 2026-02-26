@@ -1,10 +1,11 @@
-// src/core/constants.js
+﻿// src/core/constants.js
 
 export const constants = {
   // --- ONE SWITCH TO RULE AMMO ---
-  ammoInfinite: true,          // <- toggle this: true = infinite ammo, false = finite
-  startingAmmo: 1000,          // <- used when ammoInfinite === false
-  maxAmmo: 5000,               // cap for pickups if finite
+  ammoInfinite: false,         // true = infinite ammo, false = finite
+  startingAmmo: 1000,          // used when ammoInfinite === false
+  maxAmmo: 1000,               // cap for pickups if finite
+  playerDamageTakenMultiplier: 0.3333, // lower = tankier player
 
   // Speeds
   playerBulletSpeed: 12,
@@ -16,7 +17,7 @@ export const constants = {
   // UI/layout
   zombieScale: 1.35,
   hudScale: 0.68,
-  bottomBarHeight: 110,
+  bottomBarHeight: 80,
 
   // Assets / backgrounds (optional, used in GameScene)
   bgImages: [
@@ -34,3 +35,4 @@ export const constants = {
 };
 
 export default constants;
+

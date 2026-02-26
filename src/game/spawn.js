@@ -6,7 +6,7 @@ import { isColliding } from "./collisions.js";
 import { spawnSlugFromKill } from "./slug.js";
 
 // ------------ helpers -------------------------------------------------------
-const AMMO_CAP = Number.isFinite(constants?.ammoCap) ? constants.ammoCap : 150;
+const AMMO_CAP = Number.isFinite(constants?.maxAmmo) ? constants.maxAmmo : 9999;
 
 function hasShieldActive() {
   return (state.shieldUntil || 0) > Date.now();
@@ -102,7 +102,7 @@ function processSpecialAmmoBay() {
 
         if (isColliding(c, tank)) {
           const gain = Number.isFinite(c?.amount) ? c.amount : 30;
-          const cap  = Number.isFinite(constants?.ammoCap) ? constants.ammoCap : 150;
+          const cap  = Number.isFinite(constants?.maxAmmo) ? constants.maxAmmo : 9999;
           state.ammo = Math.min((state.ammo || 0) + gain, cap);
 
           try {

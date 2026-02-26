@@ -25,6 +25,13 @@ import { verifyResources } from "./preflight.js";
 
 console.log("[main] script loaded");
 
+function setGameplayVisualState(isGameplay) {
+  try {
+    document.body.classList.toggle("gameplay-active", !!isGameplay);
+    document.body.classList.toggle("game-started", !!isGameplay);
+  } catch {}
+}
+
 // --- Optimized resize debounce (core-level) ---
 const debounceResize = (() => {
   let timeoutId;
@@ -119,7 +126,7 @@ function ensureFrameHud() {
             <div class="pip on"></div>
             <div class="pip on"></div>
           </div>
-          <span class="hud-value" id="hud-ammo-value">50</span>
+          <span class="hud-value" id="hud-ammo-value">1000</span>
         </div>
         <div class="hud-seg score">
           <span class="hud-label">SCORE</span>
@@ -158,7 +165,7 @@ function ensureFrameHud() {
   const sectorValue = document.getElementById('hud-sector');
   
   if (healthValue) healthValue.textContent = '100';
-  if (ammoValue) ammoValue.textContent = '50';
+  if (ammoValue) ammoValue.textContent = String(Number.isFinite(constants?.startingAmmo) ? constants.startingAmmo : 50);
   if (scoreValue) scoreValue.textContent = '000000';
   if (roundValue) roundValue.textContent = '01';
   if (sectorValue) sectorValue.textContent = 'ALPHA';
@@ -225,6 +232,7 @@ function startGame(scene, { startScreen, canvas } = {}) {
       startScreen.style.display = "none";
     }, 500);
   }
+  setGameplayVisualState(true);
   
   // Show HUD - CRITICAL FOR HUD UPDATES
   const frameHud = document.getElementById("screen-hud");
@@ -288,6 +296,8 @@ function startGame(scene, { startScreen, canvas } = {}) {
   state.sector = 'ALPHA'; // FORCE START AT SECTOR ALPHA (English name)
   state.bossIndex = 0;   // FORCE START AT FIRST BOSS
   state.gameStarted = true; // CRITICAL: Set this flag for HUD visibility
+  // Short startup fire delay prevents accidental shots while intro/overlay transitions settle.
+  state.canShootAt = (performance.now?.() ?? Date.now()) + 900;
   
   updateCanvasSize({ keepTankPosition: false });
   
@@ -436,7 +446,8 @@ window.restartGame = () => {
     const startScreen = document.getElementById("start-screen");
     if (startScreen) {
       startScreen.style.display = "grid";
-      document.body.classList.remove("game-started");
+      setGameplayVisualState(false);
+      state.canShootAt = 0;
     }
   } catch (e) {
     console.error("[main] restartGame failed, fallback reload:", e);
@@ -520,6 +531,7 @@ async function runPreflight() {
 // Game initialization
 async function initGame() {
   console.log("[main] initGame()");
+  setGameplayVisualState(false);
   
   // (removed debug positioning log)
   
@@ -644,6 +656,7 @@ async function initGame() {
 // Stop the main loop when end screen opens
 window.addEventListener('end-screen-open', () => {
   try { state.gameStarted = false; } catch {}
+  setGameplayVisualState(false);
 }, { once: true });
 
 // Attempt fullscreen on desktop

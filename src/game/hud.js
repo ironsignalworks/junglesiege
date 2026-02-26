@@ -415,90 +415,39 @@ export function drawCombo(ctx) {
   const cw = state.canvas.width | 0;
   const ch = state.canvas.height | 0;
 
-  // Responsive cap; overridable via constants
-  const MAX_PX = Number.isFinite(constants?.comboMaxPx) ? constants.comboMaxPx : 42;
-  const MIN_PX = Number.isFinite(constants?.comboMinPx) ? constants.comboMinPx : 18;
+  const px = Math.max(16, Math.min(30, Math.floor(cw * 0.03), Math.floor(ch * 0.045)));
+  const text = String(state.comboDisplay);
 
-  // Scale with canvas but clamp
-  const px = Math.max(
-    MIN_PX,
-    Math.min(
-      MAX_PX,
-      Math.floor(cw * 0.035),
-      Math.floor(ch * 0.06)
-    )
-  );
-
-  const maxW = Math.floor(cw * 0.65);
-  const lineH = Math.floor(px * 1.1);
-
-  // Prepare text
   ctx.save();
-  ctx.font = `bold ${px}px 'Press Start 2P', monospace`;
+  ctx.font = `900 ${px}px 'Press Start 2P', monospace`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 
-  const words = String(state.comboDisplay).split(/\s+/);
-  const lines = [];
-  let line = "";
-  for (let i = 0; i < words.length; i++) {
-    const test = line ? `${line} ${words[i]}` : words[i];
-    if (ctx.measureText(test).width > maxW && line) {
-      lines.push(line);
-      line = words[i];
-    } else {
-      line = test;
-    }
-  }
-  if (line) lines.push(line);
+  const tw = Math.ceil(ctx.measureText(text).width);
+  const boxW = Math.max(260, Math.min(Math.floor(cw * 0.78), tw + 44));
+  const boxH = Math.max(42, Math.floor(px * 1.95));
+  const boxX = Math.floor((cw - boxW) / 2);
+  const boxY = Math.floor(ch * 0.46 - boxH / 2);
 
-  // Calculate position and dimensions
-  const totalH = lines.length * lineH + 20; // Extra padding for ornate frame
-  const textBoxW = maxW + 40;
-  const boxX = cw / 2 - textBoxW / 2;
-  const boxY = Math.floor(ch * 0.50) - totalH / 2;
+  // Unified military panel style.
+  const g = ctx.createLinearGradient(0, boxY, 0, boxY + boxH);
+  g.addColorStop(0, "rgba(45,53,40,0.96)");
+  g.addColorStop(1, "rgba(28,34,25,0.96)");
+  ctx.fillStyle = g;
+  ctx.fillRect(boxX, boxY, boxW, boxH);
 
-  // Draw ornate background frame
-  drawOrnateFrame(ctx, boxX, boxY, textBoxW, totalH, {
-    palette: FRAME_PALETTES.gold,
-    borderWidth: 4,
-    cornerSize: 12,
-    notchSize: 4,
-    notchSpacing: 24,
-    includeTexture: true,
-    textureIntensity: 0.06,
-    glowIntensity: 0.6
-  });
+  ctx.strokeStyle = "#4b5320";
+  ctx.lineWidth = 3;
+  ctx.strokeRect(boxX + 1, boxY + 1, boxW - 2, boxH - 2);
+  ctx.strokeStyle = "#cfb53b";
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(boxX + 5, boxY + 5, boxW - 10, boxH - 10);
 
-  // Draw dark inner panel
-  const innerGradient = ctx.createLinearGradient(boxX + 8, boxY + 8, boxX + textBoxW - 8, boxY + totalH - 8);
-  innerGradient.addColorStop(0, 'rgba(0, 0, 0, 0.9)');
-  innerGradient.addColorStop(1, 'rgba(20, 20, 20, 0.9)');
-  ctx.fillStyle = innerGradient;
-  ctx.fillRect(boxX + 8, boxY + 8, textBoxW - 16, totalH - 16);
-
-  // Draw text with enhanced effects
-  let y = boxY + totalH / 2 - (lines.length - 1) * lineH / 2;
-  
-  for (const l of lines) {
-    // Multi-layer glow effect
-    ctx.shadowColor = "rgba(255, 239, 122, 0.8)";
-    ctx.shadowBlur = 20;
-    ctx.fillStyle = "#ffef7a";
-    ctx.fillText(l, cw / 2, y);
-    
-    // Inner glow
-    ctx.shadowColor = "rgba(255, 255, 255, 0.6)";
-    ctx.shadowBlur = 10;
-    ctx.fillStyle = "#ffffff";
-    ctx.fillText(l, cw / 2, y);
-    
-    y += lineH;
-  }
-
-  // Add pulsing glow around entire combo box
-  drawPulsingGlow(ctx, boxX, boxY, textBoxW, totalH, "#ffef7a", 0.4, Date.now());
-
+  const pulse = ((Date.now() / 220) | 0) % 2 === 0 ? 0.85 : 0.55;
+  ctx.shadowColor = `rgba(73,251,53,${pulse})`;
+  ctx.shadowBlur = 12;
+  ctx.fillStyle = "#49fb35";
+  ctx.fillText(text, Math.floor(cw / 2), Math.floor(boxY + boxH / 2));
   ctx.restore();
 }
 

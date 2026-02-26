@@ -71,6 +71,10 @@ function lockBulletKinematics(b) {
 
 export function firePlayerBullet() {
   if (!state.gameStarted || !state.tank || !state.canvas) return;
+  if (state.inputLocked || state.overlayActive || state.bossAnnouncementShowing) return;
+  const now = performance.now?.() ?? Date.now();
+  const canShootAt = Number.isFinite(state.canShootAt) ? state.canShootAt : 0;
+  if (now < canShootAt) return;
   if (!constants.ammoInfinite && (state.ammo ?? 0) <= 0) return;
 
   const x1 = state.tank.x + state.tank.width / 2;
