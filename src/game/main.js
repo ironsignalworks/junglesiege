@@ -23,7 +23,7 @@ import { resources } from "./resources.js";
 import { bossDefinitions } from "./boss.js";
 import { verifyResources } from "./preflight.js";
 
-console.log("[main] script loaded");
+// Script bootstrap
 
 function setGameplayVisualState(isGameplay) {
   try {
@@ -186,12 +186,7 @@ function ensureFrameHud() {
 
 // Simple game start
 function startGame(scene, { startScreen, canvas } = {}) {
-  console.log("[main] startGame() - State at start:", {
-    health: state.health,
-    ammo: state.ammo,
-    score: state.score,
-    round: state.round
-  });
+  // Start of a new game run; detailed logging removed for performance
   
   // Remove any existing canvas
   const existingCanvas = document.getElementById("gameCanvas");
@@ -211,8 +206,11 @@ function startGame(scene, { startScreen, canvas } = {}) {
   
   const c = document.createElement("canvas");
   c.id = "gameCanvas";
-  c.width = 800;
-  c.height = 600;
+  // Internal render resolution (scaled up by CSS)
+  const isSmallScreen = Math.min(window.innerWidth, window.innerHeight) <= 800;
+  const resolutionScale = isSmallScreen ? 0.75 : 1;
+  c.width = Math.round(800 * resolutionScale);
+  c.height = Math.round(600 * resolutionScale);
   c.className = "active";
   
   stage.appendChild(c);
@@ -642,7 +640,8 @@ async function initGame() {
     startBtn.onclick = (e) => {
       e.preventDefault();
       try { if (resources?.audio?.fxUiStart) playSound(resources.audio.fxUiStart); } catch {}
-      try { requestFullscreenDesktop(); } catch {}
+      // Removed automatic browser fullscreen to keep the game in windowed mode
+      // try { requestFullscreenDesktop(); } catch {}
       try { lockLandscapeOnMobile(); } catch {}
       ensureRotateOverlayHandlers();
       startGame(scene, { startScreen, canvas });

@@ -35,7 +35,9 @@ html, body{
   inset: 0;
   margin: 0;
   width: 100vw;
+  /* Use dynamic viewport height where available for better mobile handling */
   height: 100vh;
+  height: 100dvh;
   background:#000;
   overflow:hidden;
   box-sizing: border-box;
@@ -320,7 +322,11 @@ html, body{
 
 /* ---------- BOTTOM BAR (HP/Ammo/Score) ---------- */
 .hud-bottom{
-  position:absolute; bottom:10px; left:10px; right:10px; height:64px;
+  position:absolute;
+  bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  left:10px;
+  right:10px;
+  height:64px;
   display:flex; align-items:center; justify-content:space-between; gap:18px; padding:12px 16px;
   pointer-events:none; z-index:20;
   /* Match boss panel steel look more closely */
@@ -449,12 +455,14 @@ html, body{
     0 0 2px rgba(255,193,7,.25) !important;
 }
 
-/* Boss HP bar visuals (chunky) */
+/* Boss HP bar visuals (compact, discrete) */
 .boss-hp-bar{
-  position: relative; width: clamp(240px, 60vw, 720px); height: 22px;
+  position: relative;
+  width: clamp(140px, 28vw, 260px);
+  height: 10px;
   background: linear-gradient(180deg, var(--steel-1), var(--steel-2));
-  border: 2px solid #232323;
-  box-shadow: inset 0 2px 0 rgba(255,255,255,.08), inset 0 -2px 0 rgba(0,0,0,.8), 0 2px 6px rgba(0,0,0,.35);
+  border: 1px solid #232323;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.8);
 }
 .boss-hp-fill{
   position:absolute; left:2px; top:2px; bottom:2px;
@@ -463,11 +471,55 @@ html, body{
 }
 .boss-name-text, .boss-hp-text{
   font-family: var(--font);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 900;
   letter-spacing: .06em;
 }
 
 /* Hide boss bar by default; show only when boss is active */
-.boss-hp-container { display: none; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); gap: 10px; align-items: center; }
+.boss-hp-container { display: none; position: absolute; top: 6px; left: 50%; transform: translateX(-50%); gap: 4px; align-items: center; }
 #screen-hud.boss-active .boss-hp-container { display: flex; }
+
+/* ---------- Responsive tweaks for smaller mobile screens ---------- */
+@media (max-width: 768px){
+  .hud-bottom{
+    height:auto;
+    padding:8px 10px;
+    gap:10px;
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+  .hud-seg{
+    gap:8px;
+  }
+  .hud-label{
+    font-size:10px;
+  }
+  .hud-value{
+    font-size:12px;
+  }
+  .hp-bar{
+    width:min(180px, 52vw);
+    height:16px;
+  }
+  .boss-hp-bar{
+    width:clamp(200px, 80vw, 520px);
+    height:20px;
+  }
+  .boss-name-text, .boss-hp-text{
+    font-size:11px;
+  }
+}
+
+@media (max-width: 520px){
+  .hud-bottom{
+    bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+    left:6px;
+    right:6px;
+    row-gap:6px;
+  }
+  .pip{
+    width:12px;
+    height:16px;
+  }
+}

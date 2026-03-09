@@ -811,11 +811,10 @@ export class GameScene {
   }
 
   enter() {
-    console.log("GameScene.enter() - Initializing game");
+    // GameScene.enter() - Initializing game
     
     // FORCE START AT ROUND 1
     state.round = 1;
-    console.log("[GameScene] Forced round to 1");
     
     // Initialize sector based on current boss index (should be 0 for start)
     state.bossIndex = Number.isFinite(state.bossIndex) ? state.bossIndex : 0;
@@ -840,8 +839,6 @@ export class GameScene {
     // Ensure canvas is visible and active
     state.canvas.style.display = "block";
     state.canvas.classList.add("active");
-    console.log("[GameScene] Canvas display set to:", state.canvas.style.display);
-    console.log("[GameScene] Canvas classList:", state.canvas.classList.toString());
     
     // Hide start screen if it exists
     const startScreen = document.getElementById("start-screen");
@@ -868,10 +865,10 @@ export class GameScene {
     // FIXED: Properly initialize ammo based on constants
     if (constants?.ammoInfinite) {
       state.ammo = Number.POSITIVE_INFINITY;
-      console.log("[GameScene] Set infinite ammo");
+      // [GameScene] Set infinite ammo
     } else {
       state.ammo = Number.isFinite(constants?.startingAmmo) ? constants.startingAmmo : 50;
-      console.log("[GameScene] Set finite ammo:", state.ammo);
+      // [GameScene] Set finite ammo
     }
 
     state.score = 0;
@@ -901,14 +898,14 @@ export class GameScene {
 
     // CRITICAL: Ensure input is not locked
     state.inputLocked = false;
-    console.log("[GameScene] Input unlocked, inputLocked:", state.inputLocked);
+    // [GameScene] Input unlocked
     
     // Initialize input state to prevent undefined values
     state.keyLeft = false;
     state.keyRight = false;
     state.keyUp = false;
     state.keyDown = false;
-    console.log("[GameScene] Input state initialized");
+    // [GameScene] Input state initialized
 
     // BOSS INITIALIZATION - Start fresh
     state.bossIndex = 0; // Always start with first boss (Mallet Melissa)
@@ -918,15 +915,7 @@ export class GameScene {
     state.bossAnnouncementShowing = false;
     state.bossProjectiles = [];
     
-    console.log("Boss system initialized - bossIndex:", state.bossIndex, "triggerCount:", state.bossTriggerCount);
-    console.log("Game state initialized:", {
-      round: state.round,
-      sector: state.sector,
-      bossIndex: state.bossIndex,
-      health: state.health,
-      ammo: state.ammo,
-      score: state.score
-    });
+    // Boss system initialized / initial game state (logging removed for performance)
 
     // Optimized audio handling
     if (state.resourcesLoaded && resources.audio.bgm) {
@@ -1117,19 +1106,7 @@ export class GameScene {
       t.x = Math.round(t.x);
     })();
     
-    // Debug input state periodically
-    if (!state._lastInputDebug || now - state._lastInputDebug > 1000) {
-      state._lastInputDebug = now;
-      console.log("[GameScene] Input state debug:", {
-        keyLeft: state.keyLeft,
-        keyRight: state.keyRight,
-        keyUp: state.keyUp,
-        keyDown: state.keyDown,
-        gameStarted: state.gameStarted,
-        inputLocked: state.inputLocked,
-        tankPosition: { x: state.tank.x, y: state.tank.y }
-      });
-    }
+    // Debug input logging disabled for performance
 
     // Hook drag
     if ((state._dragUntil || 0) > 0 && state._dragVec) {

@@ -1,4 +1,4 @@
-﻿@import url('./styles.css');
+@import url('./styles.css');
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 :root {
@@ -158,30 +158,25 @@ body.gameplay-active::after {
   box-shadow: 0 0 5px rgba(212, 175, 55, 0.4);
 }
 
-/* ---------- BOSS HUD: DANGER STRIPES ---------- */
+/* ---------- BOSS HUD: more compact, subtle ---------- */
 .boss-hp-container {
-  top: 20px;
-  background: rgba(0,0,0,0.85);
-  padding: 15px;
-  border: 2px solid var(--blood-red);
+  top: 4px;
+  background: rgba(0,0,0,0.55);
+  padding: 4px 6px;
+  border: 1px solid rgba(139, 0, 0, 0.7);
+  border-radius: 3px;
 }
 
 .boss-hp-bar-container {
-  background: repeating-linear-gradient(
-    45deg,
-    #000,
-    #000 10px,
-    #222 10px,
-    #222 20px
-  ) !important;
-  border: 3px solid #444 !important;
+  background: rgba(0,0,0,0.75) !important;
+  border: 1px solid #333 !important;
 }
 
 .boss-name-text {
   color: var(--blood-red) !important;
-  font-size: 16px;
-  text-shadow: 2px 2px 0px #000;
-  animation: blink 0.5s infinite alternate;
+  font-size: 11px;
+  text-shadow: 0 0 2px #000;
+  animation: none;
 }
 
 @keyframes blink {
